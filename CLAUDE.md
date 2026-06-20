@@ -93,8 +93,14 @@ remember the MV3 rule: return `true` from an `onMessage` listener only when you 
 - **Local‑only model loading is mandatory.** In [`extension/offscreen.js`](extension/offscreen.js),
   `env.allowRemoteModels = false` and `wasmPaths` point at the bundled `lib/`. Never
   introduce a CDN fetch — it breaks the offline/privacy guarantee and CSP.
-- **Single‑threaded WASM** (`numThreads = 1`): extension pages can't reliably enable
-  cross‑origin isolation. Don't assume threaded ORT.
+- **Cross‑origin isolation is required for ORT.** The bundled ORT build is threaded and
+  creates a _shared_ `WebAssembly.Memory`, which needs a real `SharedArrayBuffer`. The
+  manifest opts extension pages into isolation via `cross_origin_embedder_policy:
+require-corp` + `cross_origin_opener_policy: same-origin`. Without these the offscreen
+  document throws "requested a shared WebAssembly.Memory but the returned buffer is not a
+  SharedArrayBuffer". `numThreads = 1` (one model; avoids spawning proxy workers). COEP
+  require‑corp is safe here because the offscreen/popup/options pages only load same‑origin
+  bundled resources.
 - **Model is bundled twice.** [`extension/models/dpbh-distilbert/`](extension/models/dpbh-distilbert/)
   is what ships; the root [`onnx_quantized/`](onnx_quantized/) is the byte‑identical
   exported artifact (training/export output). They must stay in sync — if you re‑export
@@ -196,16 +202,19 @@ The classifier is documented in [`docs/MODEL_CARD.md`](docs/MODEL_CARD.md). Metr
 **reproducible**: `npm run eval` ([`scripts/evaluate.mjs`](scripts/evaluate.mjs)) runs the
 real `q8` model over [`eval/dataset.jsonl`](eval/dataset.jsonl) and writes
 [`eval/results.json`](eval/results.json). The eval uses the dev‑only `@huggingface/transformers`
-package (not shipped). **Known model weakness:** Forced Action, Obstruction, and Sneaking are
-under‑detected (collapse to "Not Dark Pattern"); heuristics backstop Forced Action but
-Obstruction/Sneaking have no heuristic coverage either. When changing the model, re‑run
-`npm run eval` and update the model card.
+package (not shipped). **Known model weakness:** the **ML model** under‑detects Forced
+Action, Obstruction, and Sneaking (they collapse to "Not Dark Pattern"). Stage 1 heuristics
+in `detection.js` now have dedicated rules for all three (derived from
+[`data/collected.jsonl`](data/collected.jsonl)), so the running product still flags them — but
+the model itself is unchanged. To fix the model (not just heuristics), retrain on the
+collected data, re‑export, then re‑run `npm run eval` and update the model card.
 
 ## Known follow‑ups
 
 - Not published to the Chrome Web Store; needs store listing assets + a privacy policy.
 - `npm run icons` is macOS-only (uses `sips`/`qlmanage`); add a cross-platform fallback if
   contributors are on Linux/Windows.
-- Model under‑detects Forced Action / Obstruction / Sneaking — add heuristics and/or retrain
-  (see `docs/MODEL_CARD.md`); expand `eval/dataset.jsonl` beyond the small curated set.
+- The **ML model** still under‑detects Forced Action / Obstruction / Sneaking (heuristics now
+  cover them at Stage 1, but the model needs retraining on `data/collected.jsonl`); expand
+  `eval/dataset.jsonl` beyond the small curated set. See `docs/MODEL_CARD.md`.
 - Content‑script DOM/messaging glue is not unit‑tested (only the pure logic is).

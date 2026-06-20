@@ -32,8 +32,8 @@ A self-contained page with known patterns ships in the repo:
 3. **Expected:**
    - Urgency, Scarcity, Social Proof, Misdirection, Forced Action sections get highlighted.
    - The **Benign control** section is **not** highlighted.
-   - Sneaking / Obstruction may **not** highlight — these are known model blind spots
-     (see [`MODEL_CARD.md`](MODEL_CARD.md)); the page labels them as such.
+   - Sneaking / Obstruction now highlight too via Stage 1 heuristics (the model alone misses
+     them — see [`MODEL_CARD.md`](MODEL_CARD.md)).
 4. Open the popup: the total and per-category counts should match what you see. Click a
    category row → the page scrolls to and pulses that highlight.
 
@@ -98,4 +98,4 @@ Open **Options** (right-click the icon → Options, or the ⚙ in the popup):
 | Works on `http` but not local file | Enable "Allow access to file URLs" in the extension details.                                                       |
 | ML badge stuck on `loading`        | Model file is an LFS pointer stub — run `git lfs pull`.                                                            |
 | Obvious "Only 2 left" not flagged  | Heuristics are conservative; check the category is enabled and the text isn't inside an already-highlighted block. |
-| Sneaking/Obstruction never flagged | Known model blind spot — see `MODEL_CARD.md`.                                                                      |
+| Sneaking/Obstruction not flagged   | Should be caught by Stage 1 heuristics now; the ML model alone still misses them (see `MODEL_CARD.md`).            |

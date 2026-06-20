@@ -123,9 +123,13 @@ The full machine-readable report (every prediction + score) is in
 ### How the product mitigates this
 
 DigiCom is a **hybrid** system. The Stage 1 heuristics in `detection.js` independently catch
-Forced Action, Urgency, Scarcity, Social Proof, and Misdirection via regex, partially
-backstopping the model's weaknesses. **However, Obstruction and Sneaking have _no_ heuristic
-rules and weak ML coverage — they are current blind spots.** See [Recommended follow-ups](#recommended-follow-ups).
+manipulative phrasing via regex, **including dedicated rules for the three classes the model
+is weakest on** — Forced Action, Obstruction, and Sneaking (added from web-sourced examples
+in [`data/collected.jsonl`](../data/collected.jsonl); see
+[`test/detection.test.mjs`](../test/detection.test.mjs)). So in the running product these
+patterns are still detected even though the ML stage misses them. The ML metrics above are
+unchanged by this — they measure the model in isolation; fixing the model itself still
+requires retraining (see [Recommended follow-ups](#recommended-follow-ups)).
 
 ## Ethical considerations
 
@@ -137,8 +141,11 @@ rules and weak ML coverage — they are current blind spots.** See [Recommended 
 
 ## Recommended follow-ups
 
-- Add heuristic rules for **Obstruction** and **Sneaking** in `detection.js` (with tests).
+- ~~Add heuristic rules for **Obstruction** and **Sneaking** in `detection.js`~~ ✅ done
+  (Stage 1 now covers all weak classes; ML still needs work).
 - Expand `eval/dataset.jsonl` with real, independently-labeled page snippets; re-run `npm run eval`.
+- Use [`data/collected.jsonl`](../data/collected.jsonl) to **retrain/fine-tune** the model so
+  the ML stage (not just heuristics) detects Forced Action / Obstruction / Sneaking.
 - Retrain / fine-tune to lift Forced Action / Obstruction / Sneaking recall, then re-export
   (update both model copies via `npm run sync-model`) and refresh this card.
 

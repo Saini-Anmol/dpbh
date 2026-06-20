@@ -14,6 +14,18 @@ describe("classifyHeuristic", () => {
     ["No thanks, I'd rather pay full price", "Misdirection"],
     ["Create an account to continue reading", "Forced Action"],
     ["I agree to receive marketing emails", "Forced Action"],
+    ["Accept cookies to continue to the website", "Forced Action"],
+    ["Download the app to complete this order", "Forced Action"],
+    ["Verify your phone number to finish checkout", "Forced Action"],
+    [
+      "To cancel your membership, please call customer service during business hours.",
+      "Obstruction",
+    ],
+    ["Account deletion can only be requested through a support ticket.", "Obstruction"],
+    ["There is no Reject All button; opt out of each setting manually.", "Obstruction"],
+    ["A $9.99 service fee will be added at the final step of checkout.", "Sneaking"],
+    ["Your one-time payment of $89 will renew automatically every year.", "Sneaking"],
+    ["Shipping protection has been added to your cart.", "Sneaking"],
   ];
 
   for (const [text, category] of cases) {
@@ -24,9 +36,21 @@ describe("classifyHeuristic", () => {
     });
   }
 
-  it("returns null for benign copy", () => {
-    assert.equal(DigiComDetection.classifyHeuristic("Free shipping on all orders"), null);
-    assert.equal(DigiComDetection.classifyHeuristic("Add to cart"), null);
+  it("returns null for benign copy (false-positive guard)", () => {
+    const benign = [
+      "Free shipping on all orders",
+      "Add to cart",
+      "Our return policy lasts 30 days",
+      "Sign in to your account",
+      "Manage your settings",
+      "All taxes included in the price shown",
+      "Cancel anytime from your account settings",
+      "Add your favourite items to your wishlist",
+      "Call us for product support",
+    ];
+    for (const text of benign) {
+      assert.equal(DigiComDetection.classifyHeuristic(text), null, `should not flag: ${text}`);
+    }
   });
 
   it("ignores text outside length bounds", () => {

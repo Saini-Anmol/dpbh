@@ -105,9 +105,10 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`CLAUDE.md`](CLAUDE.md) 
 
 The classifier is documented in [`docs/MODEL_CARD.md`](docs/MODEL_CARD.md), including
 **reproducible metrics** (`npm run eval` over [`eval/dataset.jsonl`](eval/dataset.jsonl)).
-On the current curated set it scores ~**54% accuracy / 44.5% macro-F1** — strong on
-Scarcity, Social Proof, and Urgency, but it currently **misses Forced Action, Obstruction,
-and Sneaking** (read the model card's Limitations before relying on it).
+On the current curated set the **model** scores ~**54% accuracy / 44.5% macro-F1** — strong
+on Scarcity, Social Proof, and Urgency, but it misses Forced Action, Obstruction, and
+Sneaking. Those three are backstopped by **Stage 1 heuristics** so the running product still
+flags them; the model itself needs retraining (read the model card's Limitations).
 
 ## Testing
 

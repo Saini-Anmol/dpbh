@@ -7,7 +7,29 @@ the version is [`extension/manifest.json`](extension/manifest.json).
 
 ## [Unreleased]
 
+### Fixed
+
+- **ONNX Runtime failed with "requested a shared WebAssembly.Memory … not a
+  SharedArrayBuffer".** The bundled ORT build is threaded and needs cross-origin isolation.
+  Added `cross_origin_embedder_policy: require-corp` and `cross_origin_opener_policy:
+same-origin` to the manifest so extension pages (incl. the offscreen document) are
+  cross-origin isolated and `SharedArrayBuffer` is available.
+- **Model failed to load in the offscreen document** ("Browser cache is not available in this
+  environment."). Offscreen documents don't reliably expose the `CacheStorage` API; disabled
+  Transformers.js browser/FS caching (`env.useBrowserCache`/`useFSCache = false`) since the
+  model is bundled locally. Added a clear `console.error` on load failure.
+
 ### Added
+
+- **Heuristic coverage for Obstruction and Sneaking** (Stage 1), plus broadened **Forced
+  Action** rules (cookie walls, forced sign-up/app/social login, permission & contact-info
+  gates). Derived from web-sourced examples in [`data/collected.jsonl`](data/collected.jsonl)
+  and covered by tests — these three classes are no longer detection blind spots at Stage 1,
+  even though the ML model still misses them.
+- **Dataset collection tooling**: a `dataset-builder` custom agent
+  ([`.claude/agents/dataset-builder.md`](.claude/agents/dataset-builder.md)), a labeling
+  guide ([`data/LABELING_GUIDE.md`](data/LABELING_GUIDE.md)), and a staging set
+  ([`data/collected.jsonl`](data/collected.jsonl), 59 labeled examples).
 
 - **Unit tests** ([`test/`](test/)) on Node's built-in test runner, covering detection
   heuristics/filters and settings normalization (`npm test`).
