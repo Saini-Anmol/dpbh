@@ -1,0 +1,16 @@
+<svg width="512" height="512" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0ea5e9"/>
+      <stop offset="1" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+  <!-- Shield -->
+  <path d="M64 6 L114 24 V62 C114 92 92 114 64 122 C36 114 14 92 14 62 V24 Z"
+        fill="url(#g)"/>
+  <path d="M64 6 L114 24 V62 C114 92 92 114 64 122 C36 114 14 92 14 62 V24 Z"
+        fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="3"/>
+  <!-- Magnifier: lens + handle (detection) -->
+  <circle cx="56" cy="56" r="22" fill="none" stroke="#ffffff" stroke-width="9"/>
+  <line x1="72" y1="72" x2="92" y2="92" stroke="#ffffff" stroke-width="11" stroke-linecap="round"/>
+</svg>

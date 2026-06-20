@@ -1,0 +1,318 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --bg: #0f172a;
+        --panel: #1e293b;
+        --panel-2: #334155;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --accent: #38bdf8;
+        --high: #ef4444;
+        --moderate: #f59e0b;
+        --low: #3b82f6;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        margin: 0;
+        width: 320px;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .header {
+        padding: 14px 16px 10px;
+        background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .gear {
+        margin-left: auto;
+        background: rgba(255, 255, 255, 0.18);
+        border: none;
+        color: #fff;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        font-size: 15px;
+        cursor: pointer;
+        line-height: 1;
+      }
+      .gear:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .site-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 16px;
+        background: var(--panel);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .site-title {
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .site-host {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 2px;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .switch {
+        position: relative;
+        width: 42px;
+        height: 24px;
+        flex: 0 0 auto;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .switch .slider {
+        position: absolute;
+        inset: 0;
+        background: var(--panel-2);
+        border-radius: 24px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .switch .slider::before {
+        content: "";
+        position: absolute;
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        top: 3px;
+        background: #fff;
+        border-radius: 50%;
+        transition: 0.2s;
+      }
+      .switch input:checked + .slider {
+        background: #22c55e;
+      }
+      .switch input:checked + .slider::before {
+        transform: translateX(18px);
+      }
+      .logo {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.18);
+        display: grid;
+        place-items: center;
+        font-size: 16px;
+      }
+      .brand {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+      .brand span {
+        display: block;
+        font-size: 10px;
+        font-weight: 500;
+        opacity: 0.8;
+      }
+
+      .total-card {
+        margin: 12px 14px 8px;
+        padding: 14px;
+        background: var(--panel);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .total-card .num {
+        font-size: 34px;
+        font-weight: 800;
+        line-height: 1;
+        background: linear-gradient(90deg, #38bdf8, #a78bfa);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .total-card .label {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+      }
+      .total-card .badge {
+        padding: 6px 10px;
+        background: var(--panel-2);
+        border-radius: 20px;
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .total-card .badge[data-ml-status="ready"] {
+        background: #14532d;
+        color: #86efac;
+      }
+      .total-card .badge[data-ml-status="loading"] {
+        background: #422006;
+        color: #fdba74;
+      }
+      .total-card .badge[data-ml-status="error"] {
+        background: #7f1d1d;
+        color: #fca5a5;
+      }
+
+      .section-title {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        padding: 6px 16px;
+      }
+      .list {
+        padding: 0 14px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        background: var(--panel);
+        border-radius: 8px;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          transform 0.08s;
+        border-left: 3px solid transparent;
+      }
+      .row:hover {
+        background: var(--panel-2);
+      }
+      .row:active {
+        transform: scale(0.98);
+      }
+      .row.sev-high {
+        border-left-color: var(--high);
+      }
+      .row.sev-moderate {
+        border-left-color: var(--moderate);
+      }
+      .row.sev-low {
+        border-left-color: var(--low);
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+      .dot.sev-high {
+        background: var(--high);
+      }
+      .dot.sev-moderate {
+        background: var(--moderate);
+      }
+      .dot.sev-low {
+        background: var(--low);
+      }
+
+      .cat-name {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .count-pill {
+        background: var(--panel-2);
+        padding: 3px 9px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text);
+        min-width: 26px;
+        text-align: center;
+      }
+      .arrow {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .empty {
+        padding: 20px 16px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .empty .big {
+        font-size: 28px;
+        margin-bottom: 6px;
+      }
+
+      .footer {
+        padding: 8px 14px 12px;
+        font-size: 10px;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .hint {
+        font-size: 10px;
+        color: var(--muted);
+        padding: 0 16px 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="logo">🛡</div>
+      <div class="brand">DigiCom<span>Dark Pattern Buster</span></div>
+      <button class="gear" id="open-options" title="Settings" aria-label="Settings">⚙</button>
+    </div>
+
+    <div class="site-bar">
+      <div>
+        <div class="site-title">Active on this site</div>
+        <div class="site-host" id="site-host">—</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="site-active" />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="total-card">
+      <div>
+        <div class="num" id="total">0</div>
+        <div class="label">Patterns on this page</div>
+      </div>
+      <div class="badge" id="mode">ML: idle</div>
+    </div>
+
+    <div class="section-title">Breakdown</div>
+    <div class="hint" id="hint">Click a category to jump to the next occurrence.</div>
+    <div class="list" id="list"></div>
+    <div class="footer">
+      <span id="version">DigiCom</span>
+      <span id="status"></span>
+    </div>
+
+    <script src="settings.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

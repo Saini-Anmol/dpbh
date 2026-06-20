@@ -1,0 +1,40 @@
+{
+  "name": "digicom-dark-pattern-buster",
+  "version": "0.1.0",
+  "description": "Privacy-first Chrome (Manifest V3) extension that detects and highlights dark patterns on shopping sites in real time, using an on-device DistilBERT model.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "chrome-extension",
+    "manifest-v3",
+    "dark-patterns",
+    "consumer-protection",
+    "distilbert",
+    "transformers.js",
+    "onnx",
+    "on-device-ml"
+  ],
+  "scripts": {
+    "lint": "eslint \"extension/**/*.js\"",
+    "lint:fix": "eslint \"extension/**/*.js\" --fix",
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "eval": "node scripts/evaluate.mjs",
+    "format": "prettier --write \"**/*.{js,mjs,json,css,html,md}\"",
+    "format:check": "prettier --check \"**/*.{js,mjs,json,css,html,md}\"",
+    "icons": "bash scripts/make-icons.sh",
+    "sync-model": "node scripts/sync-model.mjs",
+    "sync-model:check": "node scripts/sync-model.mjs --check",
+    "package": "npm run sync-model:check && rm -rf dist && mkdir -p dist && cd extension && zip -r -q -X ../dist/digicom-extension.zip . -x '.*' '*/.*' '*.DS_Store' && cd .. && echo 'Built dist/digicom-extension.zip'"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@huggingface/transformers": "^4.2.0",
+    "eslint": "^9.13.0",
+    "globals": "^15.11.0",
+    "prettier": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

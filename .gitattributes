@@ -1,0 +1,11 @@
+# Store large binary model + runtime assets with Git LFS.
+# Run `git lfs install` before cloning, or `git lfs pull` after.
+*.onnx filter=lfs diff=lfs merge=lfs -text
+*.wasm filter=lfs diff=lfs merge=lfs -text
+
+# Normalize line endings for text sources.
+*.js  text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md  text eol=lf
