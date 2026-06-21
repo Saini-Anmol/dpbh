@@ -93,20 +93,19 @@ remember the MV3 rule: return `true` from an `onMessage` listener only when you 
 - **Local‑only model loading is mandatory.** In [`extension/offscreen.js`](extension/offscreen.js),
   `env.allowRemoteModels = false` and `wasmPaths` point at the bundled `lib/`. Never
   introduce a CDN fetch — it breaks the offline/privacy guarantee and CSP.
-- **Cross‑origin isolation is required for ORT.** The bundled ORT build is threaded and
-  creates a _shared_ `WebAssembly.Memory`, which needs a real `SharedArrayBuffer`. The
-  manifest opts extension pages into isolation via `cross_origin_embedder_policy:
-require-corp` + `cross_origin_opener_policy: same-origin`. Without these the offscreen
-  document throws "requested a shared WebAssembly.Memory but the returned buffer is not a
-  SharedArrayBuffer". `numThreads = 1` (one model; avoids spawning proxy workers). COEP
-  require‑corp is safe here because the offscreen/popup/options pages only load same‑origin
-  bundled resources.
+- **Single‑threaded WASM, pinned runtime.** The ML runtime is **`@xenova/transformers@2.17.2`**
+  (ONNX Runtime 1.14), which ships a true non‑threaded `ort-wasm-simd.wasm` that runs
+  **without `SharedArrayBuffer`** — so the offscreen document needs **no cross‑origin
+  isolation**. `numThreads = 1`. Do **not** upgrade to Transformers.js v3 / ORT 1.20+: those
+  are threaded‑only and require isolation that offscreen documents can't reliably get (you
+  hit "requested a shared WebAssembly.Memory but the returned buffer is not a
+  SharedArrayBuffer"). The v2 API uses `{ quantized: true }` (not v3's `{ dtype: "q8" }`).
 - **Model is bundled twice.** [`extension/models/dpbh-distilbert/`](extension/models/dpbh-distilbert/)
   is what ships; the root [`onnx_quantized/`](onnx_quantized/) is the byte‑identical
   exported artifact (training/export output). They must stay in sync — if you re‑export
-  the model, update both, or better, script the copy. The `q8` dtype in `offscreen.js`
-  must match the quantized `model_quantized.onnx`.
-- **Large binaries** (`model_quantized.onnx` ≈ 67 MB, `ort-wasm-*.wasm` ≈ 21 MB) are
+  the model, update both, or better, script the copy. `offscreen.js` loads with
+  `{ quantized: true }`, which resolves to `onnx/model_quantized.onnx`.
+- **Large binaries** (`model_quantized.onnx` ≈ 67 MB, `ort-wasm*.wasm` ≈ 10 MB) are
   tracked via **Git LFS** — see `.gitattributes`.
 - **`<all_urls>` host permissions.** The extension runs everywhere; keep the DOM scan
   cheap and the heuristics conservative to avoid false positives and jank.

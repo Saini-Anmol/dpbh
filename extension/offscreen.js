@@ -3,17 +3,15 @@ import { pipeline, env } from "./lib/transformers.min.js";
 // Force local-only loading — no CDN fetches for model or WASM.
 env.allowRemoteModels = false;
 env.allowLocalModels = true;
-// Offscreen documents don't reliably expose the CacheStorage (`caches`) API, and the model
-// is already bundled locally — so disable browser caching to avoid a load-time throw
-// ("Browser cache is not available in this environment.") and a wasted 67 MB cache write.
+// Model is bundled locally; skip browser caching (offscreen documents may not expose the
+// CacheStorage API, and there's no point re-caching a local file).
 env.useBrowserCache = false;
-env.useFSCache = false;
 env.localModelPath = chrome.runtime.getURL("models/");
 env.backends.onnx.wasm.wasmPaths = chrome.runtime.getURL("lib/");
-// The bundled ORT build is threaded and needs a real SharedArrayBuffer. The manifest opts
-// extension pages into cross-origin isolation (cross_origin_embedder_policy /
-// cross_origin_opener_policy), so SharedArrayBuffer is available here. Keep 1 thread — one
-// model, no benefit from a worker pool, and it avoids spawning proxy workers.
+// Single-threaded WASM (ort-wasm-simd.wasm) — runs WITHOUT SharedArrayBuffer, so the
+// offscreen document does NOT need cross-origin isolation. This is why the runtime is pinned
+// to @xenova/transformers@2.17.2 (ORT 1.14), which ships a true non-threaded build; ORT 1.20+
+// is threaded-only and requires isolation that offscreen documents can't reliably get.
 env.backends.onnx.wasm.numThreads = 1;
 
 const MODEL_ID = "dpbh-distilbert";
@@ -26,7 +24,9 @@ async function ensureClassifier() {
   if (classifier) return classifier;
   if (loadError) throw loadError;
   if (!loading) {
-    loading = pipeline("text-classification", MODEL_ID, { dtype: "q8" })
+    // v2 (Transformers.js) selects the quantized ONNX (onnx/model_quantized.onnx) via
+    // `quantized: true` — the equivalent of v3's `dtype: "q8"`.
+    loading = pipeline("text-classification", MODEL_ID, { quantized: true })
       .then((c) => {
         classifier = c;
         loading = null;

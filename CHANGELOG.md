@@ -9,15 +9,16 @@ the version is [`extension/manifest.json`](extension/manifest.json).
 
 ### Fixed
 
-- **ONNX Runtime failed with "requested a shared WebAssembly.Memory … not a
-  SharedArrayBuffer".** The bundled ORT build is threaded and needs cross-origin isolation.
-  Added `cross_origin_embedder_policy: require-corp` and `cross_origin_opener_policy:
-same-origin` to the manifest so extension pages (incl. the offscreen document) are
-  cross-origin isolated and `SharedArrayBuffer` is available.
+- **ONNX Runtime failed in the offscreen document with "requested a shared
+  WebAssembly.Memory ... not a SharedArrayBuffer".** Root cause: the bundled ORT 1.20 runtime
+  is threaded-only and requires cross-origin isolation, which offscreen documents can't
+  reliably get (manifest COEP/COOP didn't apply). Switched the ML runtime to
+  **`@xenova/transformers@2.17.2` (ORT 1.14)**, which ships a single-threaded
+  `ort-wasm-simd.wasm` that runs without `SharedArrayBuffer` -- no isolation needed. Removed
+  the COEP/COOP manifest keys; `offscreen.js` now loads with `{ quantized: true }`.
 - **Model failed to load in the offscreen document** ("Browser cache is not available in this
-  environment."). Offscreen documents don't reliably expose the `CacheStorage` API; disabled
-  Transformers.js browser/FS caching (`env.useBrowserCache`/`useFSCache = false`) since the
-  model is bundled locally. Added a clear `console.error` on load failure.
+  environment."). Disabled Transformers.js browser caching (`env.useBrowserCache = false`)
+  since the model is bundled locally; added a clear `console.error` on load failure.
 
 ### Added
 

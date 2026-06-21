@@ -59,11 +59,22 @@ Before writing a line, confirm:
 
 ## Output
 
-- Append (never overwrite) one JSON object per line to `data/collected.jsonl`:
-  `{"text": "...", "label": "<exact class>", "source": "<url>", "notes": "<why it fits>"}`
-- Keep existing lines intact. Maintain valid JSONL (no trailing commas, one object per line).
-- Respect any target counts the user gives (e.g. "40 Obstruction examples"); aim for class
-  balance among the requested classes.
+**Default (JSONL):** append (never overwrite) one JSON object per line to
+`data/collected.jsonl`: `{"text": "...", "label": "<exact class>", "source": "<url>",
+"notes": "<why it fits>"}`. Keep existing lines intact; valid JSONL, one object per line.
+
+**When the user specifies a different target file/format, follow that instead.** In
+particular, for a **CSV** target with a `Title,Category` header (the fine-tuning dataset):
+
+- Append rows as `Title,Category`. The `Title` is the snippet text; `Category` is the exact
+  class string. **No** `source`/`notes` columns — that schema is only `Title,Category`.
+- Use **proper CSV quoting**: if `Title` contains a comma, double-quote, or newline, wrap it
+  in double quotes and escape embedded quotes by doubling them (`"`→`""`). Never break the
+  two-column shape.
+- Append only; never reorder, edit, or delete existing rows. Keep the header intact.
+- Dedup (case-insensitive, trimmed) against the existing `Title` values in that CSV.
+
+Respect any target counts the user gives; aim for class balance among the requested classes.
 
 ## Finish with a report
 
