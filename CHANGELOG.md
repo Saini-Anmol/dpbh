@@ -7,6 +7,41 @@ the version is [`extension/manifest.json`](extension/manifest.json).
 
 ## [Unreleased]
 
+### Added
+
+- **Per-category drill-down in the on-page panel**: click a category to see a list of its
+  actual occurrences (with a heading); click an occurrence to jump straight to it.
+- **Persistent "active" highlight**: the jumped-to pattern keeps a sparkling-yellow border
+  until you pick another, so it stays clearly visible.
+- **False-positive guard** (`isBenignUIText` in `detection.js`): common benign e-commerce
+  labels — "Contact us", "Cancellation & Returns", "Track Order", "Privacy Policy", etc. —
+  are no longer flagged as dark patterns (covered by tests).
+
+### Fixed
+
+- **Page freeze / hang on dynamic sites.** The `MutationObserver` ran a synchronous full
+  scan on every mutation; on heavy sites (marketplaces) this saturated the main thread.
+  Mutations are now **coalesced and scanned once per debounce window**, the ML queue is
+  **capped per page**, and the on-page panel render is **throttled**.
+- **Click-to-jump not navigating.** `jumpToNext` now skips/prunes stale highlights and
+  reliably scrolls to the next live occurrence; the focus pulse is more visible.
+
+### Changed
+
+- **Lighter highlight styling**: subtle tint + colored underline by default, with the
+  category badge shown **on hover** instead of permanently (cleaner pages, less repaint).
+- On-page summary panel: smooth entrance animation, custom scrollbar, snappier rows.
+
+## [0.3.0] — 2026-06-21
+
+### Changed
+
+- **Retrained the DistilBERT classifier** on a balanced ~200/class dataset. Held-out accuracy
+  **53.5% → 91.5%**, macro-F1 **44.5% → 91.8%**; the previously-dead classes now work —
+  Forced Action **0% → 90.9%**, Obstruction **0% → 85.7%**, Sneaking **0% → 93.3%** F1. See
+  [`docs/MODEL_CARD.md`](docs/MODEL_CARD.md). (The quantized model is ~194 MB; shrinking it is
+  a follow-up.)
+
 ### Fixed
 
 - **ONNX Runtime failed in the offscreen document with "requested a shared
@@ -88,6 +123,7 @@ the version is [`extension/manifest.json`](extension/manifest.json).
   DistilBERT classification (Stage 2) across 8 categories, with in-page highlighting, a
   popup breakdown, and click-to-jump.
 
-[Unreleased]: https://github.com/your-org/digicom-dark-pattern-buster/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/your-org/digicom-dark-pattern-buster/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/your-org/digicom-dark-pattern-buster/releases/tag/v0.3.0
 [0.2.0]: https://github.com/your-org/digicom-dark-pattern-buster/releases/tag/v0.2.0
 [0.1.0]: https://github.com/your-org/digicom-dark-pattern-buster/releases/tag/v0.1.0

@@ -68,41 +68,47 @@ npm run eval        # prints the report, writes eval/results.json
 > directional health check, not a production benchmark. Expand `eval/dataset.jsonl` with
 > real-world, independently-labeled snippets before making any accuracy claims.
 
-### Results (71 examples, 8 classes)
+### Results (71 examples, 8 classes) — retrained model
+
+Retrained on the balanced `Title,Category` dataset (~200/class). Big jump on the three
+classes the original model missed entirely.
 
 | Metric          | Value     |
 | --------------- | --------- |
-| Accuracy        | **53.5%** |
-| Macro F1        | **44.5%** |
-| Weighted F1     | **45.7%** |
-| Macro precision | 40.8%     |
-| Macro recall    | 51.0%     |
+| Accuracy        | **91.5%** |
+| Macro F1        | **91.8%** |
+| Weighted F1     | **91.4%** |
+| Macro precision | 92.5%     |
+| Macro recall    | 92.9%     |
 
 Per-class:
 
-| Class            | Precision | Recall |    F1 | Support |
-| ---------------- | --------: | -----: | ----: | ------: |
-| Forced Action    |      0.0% |   0.0% |  0.0% |      10 |
-| Misdirection     |     66.7% |  66.7% | 66.7% |       9 |
-| Not Dark Pattern |     30.0% |  75.0% | 42.9% |      12 |
-| Obstruction      |      0.0% |   0.0% |  0.0% |       6 |
-| Scarcity         |     80.0% |  88.9% | 84.2% |       9 |
-| Sneaking         |      0.0% |   0.0% |  0.0% |       8 |
-| Social Proof     |     80.0% | 100.0% | 88.9% |       8 |
-| Urgency          |     70.0% |  77.8% | 73.7% |       9 |
+| Class            | Precision | Recall |     F1 | Support |
+| ---------------- | --------: | -----: | -----: | ------: |
+| Forced Action    |     83.3% | 100.0% |  90.9% |      10 |
+| Misdirection     |    100.0% |  88.9% |  94.1% |       9 |
+| Not Dark Pattern |    100.0% |  66.7% |  80.0% |      12 |
+| Obstruction      |     75.0% | 100.0% |  85.7% |       6 |
+| Scarcity         |    100.0% | 100.0% | 100.0% |       9 |
+| Sneaking         |    100.0% |  87.5% |  93.3% |       8 |
+| Social Proof     |    100.0% | 100.0% | 100.0% |       8 |
+| Urgency          |     81.8% | 100.0% |  90.0% |       9 |
+
+For reference, the **original** model scored 53.5% accuracy / 44.5% macro-F1, with **0% F1 on
+Forced Action, Obstruction, and Sneaking**.
 
 Confusion matrix (rows = true label, columns = predicted):
 
 ```
                    Forc Misd Not  Obst Scar Snea Soci Urge
-Forced Action         0    2    8    0    0    0    0    0
-Misdirection          0    6    3    0    0    0    0    0
-Not Dark Pattern      0    0    9    0    0    0    1    2
-Obstruction           0    0    6    0    0    0    0    0
-Scarcity              0    0    1    0    8    0    0    0
-Sneaking              2    1    3    0    0    0    1    1
+Forced Action        10    0    0    0    0    0    0    0
+Misdirection          0    8    0    1    0    0    0    0
+Not Dark Pattern      2    0    8    0    0    0    0    2
+Obstruction           0    0    0    6    0    0    0    0
+Scarcity              0    0    0    0    9    0    0    0
+Sneaking              0    0    0    1    0    7    0    0
 Social Proof          0    0    0    0    0    0    8    0
-Urgency               0    0    0    0    2    0    0    7
+Urgency               0    0    0    0    0    0    0    9
 ```
 
 The full machine-readable report (every prediction + score) is in
@@ -110,15 +116,14 @@ The full machine-readable report (every prediction + score) is in
 
 ## Limitations
 
-1. **Three categories are effectively undetected** by the model on this set — Forced Action,
-   Obstruction, and Sneaking nearly all collapse to "Not Dark Pattern." These are the more
-   subtle, context-dependent patterns.
-2. **"Not Dark Pattern" is a sink:** it has high recall (75%) but low precision (30%) —
-   i.e. many genuine dark patterns are misfiled as benign (false negatives), which is the
-   more harmful error direction for a protection tool.
-3. **Minor adjacent confusion** between Urgency and Scarcity is expected (overlapping cues).
-4. **Small, curated evaluation set** — not representative of real page-text distribution.
-5. **English-only, short-text only, quantized** (`q8` may cost a little accuracy vs. fp32).
+1. **Small evaluation set** (71 examples) — directional, not a production benchmark. Expand
+   for stronger guarantees.
+2. **English-only, short-text only.** Long-form text is filtered out before classification.
+3. **Quantized model is larger than ideal** (~194 MB): `quantize_dynamic` left the token
+   embeddings in fp32. It runs fine but the package is heavier than the previous 67 MB build;
+   improving the quantization (quantizing embeddings) is a follow-up.
+4. The previous version's blind spots (Forced Action / Obstruction / Sneaking at 0% F1) are
+   **resolved** by this retrain.
 
 ### How the product mitigates this
 

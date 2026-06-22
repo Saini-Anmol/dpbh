@@ -126,6 +126,152 @@
     return h.toString(36);
   }
 
+  // -----  False-positive guard: common benign e-commerce UI text  -----
+  // Normalize to lowercase alphanumerics so "Cancellation & Returns" -> "cancellation returns".
+  function normUI(text) {
+    return String(text ?? "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  }
+
+  // Standalone navigation / policy / account labels that are NOT dark patterns even though
+  // the model (or a loose heuristic) may flag them. Matched as the WHOLE snippet only, so
+  // genuine manipulative sentences that merely contain these words are unaffected.
+  const BENIGN_UI = new Set(
+    [
+      // help / contact
+      "contact us",
+      "contact",
+      "contact seller",
+      "help",
+      "help center",
+      "help centre",
+      "help support",
+      "support",
+      "customer service",
+      "customer care",
+      "customer support",
+      "faq",
+      "faqs",
+      "frequently asked questions",
+      "feedback",
+      "report abuse",
+      "chat with us",
+      // orders / shipping / returns
+      "returns",
+      "return",
+      "return policy",
+      "returns policy",
+      "cancellation returns",
+      "returns cancellation",
+      "returns and cancellation",
+      "cancellation and returns",
+      "refund policy",
+      "refunds",
+      "refund",
+      "shipping",
+      "shipping policy",
+      "shipping returns",
+      "shipping and returns",
+      "delivery",
+      "delivery information",
+      "track order",
+      "track your order",
+      "track package",
+      "order tracking",
+      "my orders",
+      "orders",
+      "order history",
+      "cancellation policy",
+      // account / auth
+      "sign in",
+      "log in",
+      "login",
+      "logout",
+      "log out",
+      "sign out",
+      "sign up",
+      "signup",
+      "register",
+      "create account",
+      "my account",
+      "account",
+      "your account",
+      "profile",
+      "wishlist",
+      "my wishlist",
+      "saved items",
+      "cart",
+      "my cart",
+      "shopping cart",
+      "bag",
+      "checkout",
+      "add to cart",
+      "add to bag",
+      "buy now",
+      "save for later",
+      // legal / footer
+      "privacy policy",
+      "privacy",
+      "terms conditions",
+      "terms and conditions",
+      "terms of service",
+      "terms of use",
+      "terms",
+      "cookie policy",
+      "cookies",
+      "sitemap",
+      "accessibility",
+      "do not sell my personal information",
+      // generic nav / misc
+      "home",
+      "menu",
+      "search",
+      "categories",
+      "category",
+      "all categories",
+      "shop",
+      "deals",
+      "offers",
+      "best sellers",
+      "new arrivals",
+      "about us",
+      "about",
+      "careers",
+      "blog",
+      "press",
+      "investor relations",
+      "gift cards",
+      "store locator",
+      "stores",
+      "download app",
+      "more",
+      "view all",
+      "see all",
+      "view more",
+      "show more",
+      "read more",
+      "learn more",
+      "free shipping",
+      "free delivery",
+      "compare",
+      "share",
+      "wish list",
+    ].map(normUI)
+  );
+
+  function isBenignUIText(text) {
+    const n = normUI(text);
+    if (!n) return true;
+    if (BENIGN_UI.has(n)) return true;
+    const words = n.split(" ");
+    // Short policy/legal links: "<thing> policy", "terms <thing>" — safe, low false-negative risk.
+    if (words.length <= 3 && /\b(policy|policies)$/.test(n)) return true;
+    if (words.length <= 3 && /^terms\b/.test(n)) return true;
+    return false;
+  }
+
   globalThis.DigiComDetection = {
     HEURISTICS,
     SEVERITY_MAP,
@@ -134,5 +280,6 @@
     classifyHeuristic,
     looksLikeUIText,
     hashText,
+    isBenignUIText,
   };
 })();

@@ -85,6 +85,40 @@ describe("looksLikeUIText", () => {
   });
 });
 
+describe("isBenignUIText (false-positive guard)", () => {
+  it("treats common e-commerce nav/policy labels as benign", () => {
+    const benign = [
+      "Contact us",
+      "Cancellation & Returns",
+      "Returns",
+      "Return Policy",
+      "Track Order",
+      "My Account",
+      "Sign in",
+      "Privacy Policy",
+      "Terms & Conditions",
+      "Help Center",
+      "Add to cart",
+    ];
+    for (const t of benign) {
+      assert.equal(DigiComDetection.isBenignUIText(t), true, `should be benign: ${t}`);
+    }
+  });
+
+  it("does NOT mark genuine dark-pattern sentences as benign", () => {
+    const real = [
+      "To cancel your membership, please call customer service during business hours.",
+      "A $9.99 service fee will be added at the final step of checkout.",
+      "Only 2 left in stock!",
+      "27 people are viewing this right now",
+      "Create an account to continue reading",
+    ];
+    for (const t of real) {
+      assert.equal(DigiComDetection.isBenignUIText(t), false, `should NOT be benign: ${t}`);
+    }
+  });
+});
+
 describe("hashText", () => {
   it("is deterministic and trims", () => {
     assert.equal(DigiComDetection.hashText("Buy now"), DigiComDetection.hashText("  Buy now  "));

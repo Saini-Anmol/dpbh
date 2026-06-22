@@ -3,10 +3,13 @@
 // Stage 2: ML classification via DistilBERT for remaining text (async, ~50-150ms/batch)
 
 // Pure detection logic lives in detection.js (loaded first; testable in isolation).
-const { SEVERITY_MAP, classifyHeuristic, looksLikeUIText, hashText } = DigiComDetection;
+const { SEVERITY_MAP, classifyHeuristic, looksLikeUIText, hashText, isBenignUIText } =
+  DigiComDetection;
 
 const ML_BATCH_SIZE = 24;
 const ML_BATCH_DELAY_MS = 50;
+const ML_MAX_CANDIDATES = 400; // hard cap on text snippets sent to the model per page
+const MUTATION_DEBOUNCE_MS = 400; // coalesce DOM-change bursts before re-scanning
 
 // User settings (loaded from chrome.storage via the shared settings module).
 // Starts at defaults so detection logic is always safe to call before load resolves.
@@ -31,6 +34,7 @@ function isIgnorableNode(el) {
   if (!tag) return true;
   if (["SCRIPT", "STYLE", "NOSCRIPT", "IFRAME", "SVG", "CANVAS"].includes(tag)) return true;
   if (el.closest("[data-digicom-highlighted]")) return true;
+  if (el.closest("[data-digicom-ui]")) return true; // our own on-page panel
   return false;
 }
 
@@ -71,7 +75,7 @@ function applyHighlight(node, category, severity, source) {
     state.byCategory[category] = [];
     state.cursor[category] = 0;
   }
-  state.byCategory[category].push({ id, severity });
+  state.byCategory[category].push({ id, severity, text: (node.nodeValue || "").trim() });
 }
 
 function getCounts() {
@@ -82,23 +86,181 @@ function getCounts() {
 
 function notifyCounts() {
   chrome.runtime.sendMessage({ type: "DIGICOM_DETECTION", counts: getCounts() }).catch(() => {});
+  updatePanel();
 }
 
-function jumpToNext(category) {
-  const list = state.byCategory[category];
-  if (!list || !list.length) return { ok: false };
-  const idx = state.cursor[category] % list.length;
-  state.cursor[category] = (idx + 1) % list.length;
-  const entry = list[idx];
-  const el = document.getElementById(entry.id);
-  if (!el) return { ok: false };
+// -----  On-page summary panel  -----
+const SEV_ORDER = { high: 0, moderate: 1, low: 2 };
+let panelDismissed = false;
+let panelTimer = null;
+let panelView = { mode: "list" }; // "list" = categories, or { mode: "detail", category }
 
+function escapeHtml(s) {
+  return String(s).replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
+  );
+}
+function truncate(s, n) {
+  s = (s || "").replace(/\s+/g, " ").trim();
+  return s.length > n ? s.slice(0, n - 1) + "…" : s;
+}
+
+// Throttle re-renders: detections arrive in bursts; rebuilding the panel every time is wasteful.
+function updatePanel() {
+  if (panelTimer) return;
+  panelTimer = setTimeout(() => {
+    panelTimer = null;
+    renderPanel();
+  }, 250);
+}
+
+function removePanel() {
+  document.getElementById("digicom-panel")?.remove();
+}
+
+function ensurePanel() {
+  let panel = document.getElementById("digicom-panel");
+  if (panel) return panel;
+  panel = document.createElement("div");
+  panel.id = "digicom-panel";
+  panel.dataset.digicomUi = "true";
+  panel.innerHTML = `
+    <div class="digicom-panel-head" data-digicom-head>
+      <span class="digicom-panel-logo">🛡</span>
+      <span class="digicom-panel-title">DigiCom</span>
+      <span class="digicom-panel-total" data-digicom-total>0</span>
+      <button class="digicom-panel-btn" data-digicom-min title="Minimize">–</button>
+      <button class="digicom-panel-btn" data-digicom-close title="Hide for now">×</button>
+    </div>
+    <div class="digicom-panel-sub" data-digicom-sub></div>
+    <div class="digicom-panel-body" data-digicom-body></div>`;
+  (document.body || document.documentElement).appendChild(panel);
+
+  panel.querySelector("[data-digicom-min]").addEventListener("click", (e) => {
+    e.stopPropagation();
+    panel.classList.toggle("digicom-collapsed");
+  });
+  panel.querySelector("[data-digicom-close]").addEventListener("click", (e) => {
+    e.stopPropagation();
+    panelDismissed = true;
+    removePanel();
+  });
+  panel.querySelector("[data-digicom-head]").addEventListener("click", () => {
+    panel.classList.remove("digicom-collapsed");
+  });
+  return panel;
+}
+
+function renderPanel() {
+  if (panelDismissed || !running) return removePanel();
+  const counts = getCounts();
+  const total = Object.values(counts).reduce((s, n) => s + n, 0);
+  if (!total) {
+    panelView = { mode: "list" };
+    return removePanel();
+  }
+
+  const panel = ensurePanel();
+  panel.querySelector("[data-digicom-total]").textContent = total;
+  const sub = panel.querySelector("[data-digicom-sub]");
+  const body = panel.querySelector("[data-digicom-body]");
+
+  const detailList = panelView.mode === "detail" ? state.byCategory[panelView.category] : null;
+
+  if (detailList && detailList.length) {
+    // ----- detail view: every occurrence of one category, click to jump -----
+    const cat = panelView.category;
+    const sev = SEVERITY_MAP[cat] || "low";
+    sub.innerHTML = `<button class="digicom-panel-back" data-digicom-back>‹ all</button>
+      <span class="digicom-panel-dot digicom-dot-${sev}"></span>
+      <span class="digicom-panel-heading">${escapeHtml(cat)} · ${detailList.length}</span>`;
+    body.innerHTML = detailList
+      .map(
+        (e, i) =>
+          `<button class="digicom-panel-item" data-digicom-id="${e.id}">
+            <span class="digicom-panel-idx">${i + 1}</span>
+            <span class="digicom-panel-text">${escapeHtml(truncate(e.text, 90))}</span>
+          </button>`
+      )
+      .join("");
+    sub.querySelector("[data-digicom-back]").addEventListener("click", () => {
+      panelView = { mode: "list" };
+      renderPanel();
+    });
+    body.querySelectorAll("[data-digicom-id]").forEach((it) => {
+      it.addEventListener("click", () => jumpToId(it.dataset.digicomId));
+    });
+    return;
+  }
+
+  // ----- list view: categories with counts, click to expand -----
+  panelView = { mode: "list" };
+  sub.textContent = "dark patterns on this page · click to expand";
+  const entries = Object.entries(counts)
+    .filter(([, n]) => n > 0)
+    .sort((a, b) => {
+      const sa = SEV_ORDER[SEVERITY_MAP[a[0]] || "low"];
+      const sb = SEV_ORDER[SEVERITY_MAP[b[0]] || "low"];
+      return sa !== sb ? sa - sb : b[1] - a[1];
+    });
+  body.innerHTML = entries
+    .map(([cat, n]) => {
+      const sev = SEVERITY_MAP[cat] || "low";
+      return `<button class="digicom-panel-row digicom-pl-${sev}" data-digicom-cat="${cat}">
+          <span class="digicom-panel-dot digicom-dot-${sev}"></span>
+          <span class="digicom-panel-cat">${cat}</span>
+          <span class="digicom-panel-count">${n}</span>
+          <span class="digicom-panel-arrow">›</span>
+        </button>`;
+    })
+    .join("");
+  body.querySelectorAll("[data-digicom-cat]").forEach((row) => {
+    row.addEventListener("click", () => {
+      panelView = { mode: "detail", category: row.dataset.digicomCat };
+      renderPanel();
+    });
+  });
+}
+
+// The currently "active" highlight (persistent sparkling-yellow border until another is picked).
+let activeMark = null;
+
+function setActive(el) {
+  if (activeMark && activeMark !== el) activeMark.classList.remove("digicom-active");
+  activeMark = el;
+  el.classList.add("digicom-active");
   el.scrollIntoView({ behavior: "smooth", block: "center" });
+  // brief attention pulse on top of the persistent border
   el.classList.remove("digicom-focus");
   void el.offsetWidth;
   el.classList.add("digicom-focus");
-  setTimeout(() => el.classList.remove("digicom-focus"), 2200);
-  return { ok: true, index: idx + 1, total: list.length };
+  setTimeout(() => el.classList.remove("digicom-focus"), 2000);
+}
+
+// Jump to one specific highlight by id (used by the per-category list in the panel).
+function jumpToId(id) {
+  const el = document.getElementById(id);
+  if (!el || !el.isConnected) return { ok: false };
+  setActive(el);
+  return { ok: true };
+}
+
+// Cycle to the next live occurrence of a category (used by the popup).
+function jumpToNext(category) {
+  const list = state.byCategory[category];
+  if (!list || !list.length) return { ok: false };
+  let attempts = list.length;
+  while (attempts-- > 0) {
+    const idx = state.cursor[category] % list.length;
+    state.cursor[category] = (idx + 1) % list.length;
+    const el = document.getElementById(list[idx].id);
+    if (el && el.isConnected) {
+      setActive(el);
+      return { ok: true, index: idx + 1, total: list.length };
+    }
+  }
+  return { ok: false };
 }
 
 // -----  Stage 1: heuristic pass  -----
@@ -107,6 +269,9 @@ function runHeuristicPass(root = document.body) {
   const mlCandidates = [];
 
   for (const node of nodes) {
+    // Skip common benign e-commerce labels ("Contact us", "Cancellation & Returns", …)
+    // so neither stage flags them as dark patterns.
+    if (isBenignUIText(node.nodeValue)) continue;
     const heuristic = classifyHeuristic(node.nodeValue);
     if (heuristic) {
       applyHighlight(node, heuristic.category, heuristic.severity, "heuristic");
@@ -126,10 +291,16 @@ function runHeuristicPass(root = document.body) {
 // -----  Stage 2: ML pass (async, batched)  -----
 const mlQueue = [];
 let mlFlushTimer = null;
+let mlProcessedCount = 0;
 
 function enqueueForML(nodes) {
-  for (const n of nodes) mlQueue.push(n);
-  if (!mlFlushTimer) {
+  // Cap total ML work per page so heavy/infinite-scroll sites can't flood the queue
+  // (each classification runs a 194 MB model — unbounded work freezes the experience).
+  for (const n of nodes) {
+    if (mlQueue.length + mlProcessedCount >= ML_MAX_CANDIDATES) break;
+    mlQueue.push(n);
+  }
+  if (!mlFlushTimer && mlQueue.length) {
     mlFlushTimer = setTimeout(flushMLQueue, ML_BATCH_DELAY_MS);
   }
 }
@@ -138,6 +309,7 @@ async function flushMLQueue() {
   mlFlushTimer = null;
   while (mlQueue.length) {
     const batchNodes = mlQueue.splice(0, ML_BATCH_SIZE).filter((n) => document.body.contains(n));
+    mlProcessedCount += batchNodes.length;
     if (!batchNodes.length) continue;
     const texts = batchNodes.map((n) => n.nodeValue.trim());
     try {
@@ -200,19 +372,32 @@ function clearAllHighlights() {
 
 // -----  Lifecycle  -----
 // Observe DOM changes (timers, lazy-loaded cards, carousels). Only active while running.
-const observer = new MutationObserver((mutations) => {
-  const roots = [];
-  for (const m of mutations) {
-    m.addedNodes.forEach((n) => {
-      if (n.nodeType === Node.ELEMENT_NODE && !isIgnorableNode(n)) roots.push(n);
-    });
-  }
+// Bursts of mutations are COALESCED and scanned once per debounce window — scanning
+// synchronously on every mutation freezes heavy/dynamic sites (e.g. marketplaces).
+const pendingRoots = new Set();
+let scanTimer = null;
+
+function flushPendingScan() {
+  scanTimer = null;
+  const roots = [...pendingRoots].filter((n) => n.isConnected);
+  pendingRoots.clear();
   if (!roots.length) return;
   const newCandidates = [];
-  for (const root of roots) {
-    newCandidates.push(...runHeuristicPass(root));
-  }
+  for (const root of roots) newCandidates.push(...runHeuristicPass(root));
   if (newCandidates.length) enqueueForML(newCandidates);
+}
+
+const observer = new MutationObserver((mutations) => {
+  let added = false;
+  for (const m of mutations) {
+    m.addedNodes.forEach((n) => {
+      if (n.nodeType === Node.ELEMENT_NODE && !isIgnorableNode(n)) {
+        pendingRoots.add(n);
+        added = true;
+      }
+    });
+  }
+  if (added && !scanTimer) scanTimer = setTimeout(flushPendingScan, MUTATION_DEBOUNCE_MS);
 });
 
 let running = false;
@@ -220,6 +405,7 @@ let running = false;
 function start() {
   if (running) return;
   running = true;
+  panelDismissed = false;
   chrome.runtime.sendMessage({ type: "DIGICOM_WARMUP" }).catch(() => {});
   enqueueForML(runHeuristicPass());
   observer.observe(document.body, { childList: true, subtree: true });
@@ -229,6 +415,9 @@ function stop() {
   if (!running) return;
   running = false;
   observer.disconnect();
+  clearTimeout(scanTimer);
+  scanTimer = null;
+  pendingRoots.clear();
   clearAllHighlights();
 }
 
@@ -236,6 +425,7 @@ function stop() {
 // Already-highlighted nodes are skipped by collectTextNodes, so this won't duplicate work.
 function rescan() {
   state.seenTextHashes = new Set();
+  mlProcessedCount = 0; // allow the capped budget to re-fill for the fresh pass
   enqueueForML(runHeuristicPass());
 }
 

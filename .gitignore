@@ -7,6 +7,12 @@ venv/
 .venv/
 __pycache__/
 
+# Model weights are too large for plain Git (GitHub blocks blobs >100 MB).
+# Keep the big ONNX out of the repo; tokenizer/config/label_map stay tracked.
+# Distribute the weights via a GitHub Release or Git LFS (see README).
+extension/models/dpbh-distilbert/onnx/model_quantized.onnx
+onnx_quantized/model_quantized.onnx
+
 # Build output
 dist/
 *.zip

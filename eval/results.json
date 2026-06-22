@@ -1,7 +1,7 @@
 {
   "model": "dpbh-distilbert",
   "dtype": "q8",
-  "evaluatedAt": "2026-06-20T19:26:41.330Z",
+  "evaluatedAt": "2026-06-21T12:02:36.341Z",
   "datasetSize": 71,
   "classes": [
     "Forced Action",
@@ -14,139 +14,139 @@
     "Urgency"
   ],
   "metrics": {
-    "accuracy": 0.5352112676056338,
-    "macroPrecision": 0.4083333333333333,
-    "macroRecall": 0.5104166666666666,
-    "macroF1": 0.44538429406850455,
-    "weightedF1": 0.4572464023909539,
+    "accuracy": 0.9154929577464789,
+    "macroPrecision": 0.925189393939394,
+    "macroRecall": 0.9288194444444444,
+    "macroF1": 0.917592946269417,
+    "weightedF1": 0.9136763540243242,
     "perClass": [
       {
         "class": "Forced Action",
-        "precision": 0,
-        "recall": 0,
-        "f1": 0,
+        "precision": 0.8333333333333334,
+        "recall": 1,
+        "f1": 0.9090909090909091,
         "support": 10
       },
       {
         "class": "Misdirection",
-        "precision": 0.6666666666666666,
-        "recall": 0.6666666666666666,
-        "f1": 0.6666666666666666,
+        "precision": 1,
+        "recall": 0.8888888888888888,
+        "f1": 0.9411764705882353,
         "support": 9
       },
       {
         "class": "Not Dark Pattern",
-        "precision": 0.3,
-        "recall": 0.75,
-        "f1": 0.4285714285714285,
+        "precision": 1,
+        "recall": 0.6666666666666666,
+        "f1": 0.8,
         "support": 12
       },
       {
         "class": "Obstruction",
-        "precision": 0,
-        "recall": 0,
-        "f1": 0,
+        "precision": 0.75,
+        "recall": 1,
+        "f1": 0.8571428571428571,
         "support": 6
       },
       {
         "class": "Scarcity",
-        "precision": 0.8,
-        "recall": 0.8888888888888888,
-        "f1": 0.8421052631578948,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
         "support": 9
       },
       {
         "class": "Sneaking",
-        "precision": 0,
-        "recall": 0,
-        "f1": 0,
+        "precision": 1,
+        "recall": 0.875,
+        "f1": 0.9333333333333333,
         "support": 8
       },
       {
         "class": "Social Proof",
-        "precision": 0.8,
+        "precision": 1,
         "recall": 1,
-        "f1": 0.888888888888889,
+        "f1": 1,
         "support": 8
       },
       {
         "class": "Urgency",
-        "precision": 0.7,
-        "recall": 0.7777777777777778,
-        "f1": 0.7368421052631577,
+        "precision": 0.8181818181818182,
+        "recall": 1,
+        "f1": 0.9,
         "support": 9
       }
     ]
   },
   "confusion": [
     [
+      10,
       0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      8,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
       2,
+      0,
       8,
       0,
       0,
       0,
       0,
-      0
-    ],
-    [
-      0,
-      6,
-      3,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      9,
-      0,
-      0,
-      0,
-      1,
       2
     ],
     [
       0,
       0,
+      0,
       6,
       0,
       0,
       0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      9,
+      0,
       0,
       0
     ],
     [
       0,
       0,
+      0,
       1,
+      0,
+      7,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
       0,
       8,
-      0,
-      0,
-      0
-    ],
-    [
-      2,
-      1,
-      3,
-      0,
-      0,
-      0,
-      1,
-      1
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      8,
       0
     ],
     [
@@ -154,438 +154,438 @@
       0,
       0,
       0,
-      2,
       0,
       0,
-      7
+      0,
+      9
     ]
   ],
   "predictions": [
     {
       "text": "Create an account to continue reading",
       "label": "Forced Action",
-      "predicted": "Not Dark Pattern",
-      "score": 0.9782902598381042
+      "predicted": "Forced Action",
+      "score": 0.9941508769989014
     },
     {
       "text": "You must sign in to view your cart",
       "label": "Forced Action",
-      "predicted": "Misdirection",
-      "score": 0.3707348108291626
+      "predicted": "Forced Action",
+      "score": 0.9855698347091675
     },
     {
       "text": "Subscribe now to unlock checkout",
       "label": "Forced Action",
-      "predicted": "Not Dark Pattern",
-      "score": 0.9389025568962097
+      "predicted": "Forced Action",
+      "score": 0.9895188808441162
     },
     {
       "text": "Register to access this content",
       "label": "Forced Action",
-      "predicted": "Not Dark Pattern",
-      "score": 0.9787173867225647
+      "predicted": "Forced Action",
+      "score": 0.9937022924423218
     },
     {
       "text": "I agree to receive marketing emails",
       "label": "Forced Action",
-      "predicted": "Misdirection",
-      "score": 0.3566894829273224
+      "predicted": "Forced Action",
+      "score": 0.7985948920249939
     },
     {
       "text": "Enable notifications to proceed",
       "label": "Forced Action",
-      "predicted": "Not Dark Pattern",
-      "score": 0.9803060293197632
+      "predicted": "Forced Action",
+      "score": 0.9869030714035034
     },
     {
       "text": "Add your phone number to keep shopping",
       "label": "Forced Action",
-      "predicted": "Not Dark Pattern",
-      "score": 0.9764146208763123
+      "predicted": "Forced Action",
+      "score": 0.9939979910850525
     },
     {
       "text": "Sign up is required to see the price",
       "label": "Forced Action",
-      "predicted": "Not Dark Pattern",
-      "score": 0.7246991991996765
+      "predicted": "Forced Action",
+      "score": 0.2904961109161377
     },
     {
       "text": "Log in to continue to your order",
       "label": "Forced Action",
-      "predicted": "Not Dark Pattern",
-      "score": 0.8158347010612488
+      "predicted": "Forced Action",
+      "score": 0.993927001953125
     },
     {
       "text": "Accept all cookies to use this site",
       "label": "Forced Action",
-      "predicted": "Not Dark Pattern",
-      "score": 0.9736148715019226
+      "predicted": "Forced Action",
+      "score": 0.9928190112113953
     },
     {
       "text": "No thanks, I'd rather pay full price",
       "label": "Misdirection",
       "predicted": "Misdirection",
-      "score": 0.9117968082427979
+      "score": 0.9925461411476135
     },
     {
       "text": "No, I don't want to save money",
       "label": "Misdirection",
       "predicted": "Misdirection",
-      "score": 0.9038203358650208
+      "score": 0.9946597814559937
     },
     {
       "text": "Skip this and lose my discount forever",
       "label": "Misdirection",
-      "predicted": "Not Dark Pattern",
-      "score": 0.6603589057922363
+      "predicted": "Misdirection",
+      "score": 0.802070140838623
     },
     {
       "text": "No thanks, I prefer to pay more",
       "label": "Misdirection",
       "predicted": "Misdirection",
-      "score": 0.9106400609016418
+      "score": 0.9922513961791992
     },
     {
       "text": "I don't like free discounts",
       "label": "Misdirection",
       "predicted": "Misdirection",
-      "score": 0.8985770344734192
+      "score": 0.9942154884338379
     },
     {
       "text": "Continue without protection (not recommended)",
       "label": "Misdirection",
-      "predicted": "Not Dark Pattern",
-      "score": 0.9022936820983887
+      "predicted": "Misdirection",
+      "score": 0.9802666306495667
     },
     {
       "text": "No, I hate saving money on my order",
       "label": "Misdirection",
       "predicted": "Misdirection",
-      "score": 0.892458438873291
+      "score": 0.9948345422744751
     },
     {
       "text": "Decline and miss out on exclusive deals",
       "label": "Misdirection",
-      "predicted": "Not Dark Pattern",
-      "score": 0.6537269949913025
+      "predicted": "Obstruction",
+      "score": 0.6185052990913391
     },
     {
       "text": "Nah, I don't want the best deal",
       "label": "Misdirection",
       "predicted": "Misdirection",
-      "score": 0.9012747406959534
+      "score": 0.9942516088485718
     },
     {
       "text": "Only 2 left in stock!",
       "label": "Scarcity",
       "predicted": "Scarcity",
-      "score": 0.9505262970924377
+      "score": 0.9953570365905762
     },
     {
       "text": "Almost gone, order soon",
       "label": "Scarcity",
-      "predicted": "Not Dark Pattern",
-      "score": 0.8822378516197205
+      "predicted": "Scarcity",
+      "score": 0.9898353219032288
     },
     {
       "text": "Low stock — selling fast",
       "label": "Scarcity",
       "predicted": "Scarcity",
-      "score": 0.9183201193809509
+      "score": 0.9941009283065796
     },
     {
       "text": "Just 3 items remaining",
       "label": "Scarcity",
       "predicted": "Scarcity",
-      "score": 0.9406435489654541
+      "score": 0.9945220947265625
     },
     {
       "text": "Limited quantity available",
       "label": "Scarcity",
       "predicted": "Scarcity",
-      "score": 0.9379006624221802
+      "score": 0.9944407939910889
     },
     {
       "text": "Hurry, only 5 left in stock",
       "label": "Scarcity",
       "predicted": "Scarcity",
-      "score": 0.9500114917755127
+      "score": 0.9953776001930237
     },
     {
       "text": "Last chance — almost sold out",
       "label": "Scarcity",
       "predicted": "Scarcity",
-      "score": 0.474128395318985
+      "score": 0.9866030216217041
     },
     {
       "text": "Few items left, don't wait",
       "label": "Scarcity",
       "predicted": "Scarcity",
-      "score": 0.9202107787132263
+      "score": 0.9926482439041138
     },
     {
       "text": "Stock running low on this item",
       "label": "Scarcity",
       "predicted": "Scarcity",
-      "score": 0.705848753452301
+      "score": 0.9904240369796753
     },
     {
       "text": "Hurry, sale ends soon!",
       "label": "Urgency",
       "predicted": "Urgency",
-      "score": 0.7303225994110107
+      "score": 0.9927082657814026
     },
     {
       "text": "Offer ends in 00:05:00",
       "label": "Urgency",
       "predicted": "Urgency",
-      "score": 0.9117587208747864
+      "score": 0.9940543174743652
     },
     {
       "text": "Flash sale — today only",
       "label": "Urgency",
-      "predicted": "Scarcity",
-      "score": 0.4056517779827118
+      "predicted": "Urgency",
+      "score": 0.9775007367134094
     },
     {
       "text": "Limited time offer, act now",
       "label": "Urgency",
       "predicted": "Urgency",
-      "score": 0.8928905725479126
+      "score": 0.9916717410087585
     },
     {
       "text": "Deal expires in 2 hours",
       "label": "Urgency",
       "predicted": "Urgency",
-      "score": 0.852868914604187
+      "score": 0.993841826915741
     },
     {
       "text": "Don't miss out, ends tonight",
       "label": "Urgency",
       "predicted": "Urgency",
-      "score": 0.3769994080066681
+      "score": 0.9719942808151245
     },
     {
       "text": "Sale ending soon, buy now",
       "label": "Urgency",
       "predicted": "Urgency",
-      "score": 0.4080478250980377
+      "score": 0.989286482334137
     },
     {
       "text": "Order in the next 10 minutes for same-day dispatch",
       "label": "Urgency",
       "predicted": "Urgency",
-      "score": 0.40507370233535767
+      "score": 0.9910712242126465
     },
     {
       "text": "Hurry! These prices won't last",
       "label": "Urgency",
-      "predicted": "Scarcity",
-      "score": 0.6040665507316589
+      "predicted": "Urgency",
+      "score": 0.6126144528388977
     },
     {
       "text": "27 people are viewing this right now",
       "label": "Social Proof",
       "predicted": "Social Proof",
-      "score": 0.9554890394210815
+      "score": 0.9938748478889465
     },
     {
       "text": "1,204 sold in the last 24 hours",
       "label": "Social Proof",
       "predicted": "Social Proof",
-      "score": 0.9547017812728882
+      "score": 0.9934884905815125
     },
     {
       "text": "Someone in Delhi just bought this",
       "label": "Social Proof",
       "predicted": "Social Proof",
-      "score": 0.9575974941253662
+      "score": 0.9942299127578735
     },
     {
       "text": "15 people have this in their cart",
       "label": "Social Proof",
       "predicted": "Social Proof",
-      "score": 0.9537415504455566
+      "score": 0.9941667914390564
     },
     {
       "text": "Trending — 500+ bought today",
       "label": "Social Proof",
       "predicted": "Social Proof",
-      "score": 0.942658007144928
+      "score": 0.9928053617477417
     },
     {
       "text": "Over 2000 customers purchased this week",
       "label": "Social Proof",
       "predicted": "Social Proof",
-      "score": 0.9534799456596375
+      "score": 0.9939823150634766
     },
     {
       "text": "12 shoppers are looking at this product",
       "label": "Social Proof",
       "predicted": "Social Proof",
-      "score": 0.9583206176757812
+      "score": 0.9943729639053345
     },
     {
       "text": "Bestseller — thousands sold",
       "label": "Social Proof",
       "predicted": "Social Proof",
-      "score": 0.8410528898239136
+      "score": 0.8933478593826294
     },
     {
       "text": "A $9.99 service fee has been added to your order",
       "label": "Sneaking",
-      "predicted": "Misdirection",
-      "score": 0.4806961715221405
+      "predicted": "Sneaking",
+      "score": 0.9928359985351562
     },
     {
       "text": "Your cart includes a pre-selected warranty",
       "label": "Sneaking",
-      "predicted": "Not Dark Pattern",
-      "score": 0.8815070986747742
+      "predicted": "Sneaking",
+      "score": 0.99348384141922
     },
     {
       "text": "Auto-renews at $59 per year after the trial",
       "label": "Sneaking",
-      "predicted": "Urgency",
-      "score": 0.40048661828041077
+      "predicted": "Sneaking",
+      "score": 0.9930902719497681
     },
     {
       "text": "Shipping insurance was added automatically",
       "label": "Sneaking",
-      "predicted": "Not Dark Pattern",
-      "score": 0.9256340265274048
+      "predicted": "Sneaking",
+      "score": 0.9939586520195007
     },
     {
       "text": "By continuing you'll be enrolled in our membership",
       "label": "Sneaking",
-      "predicted": "Forced Action",
-      "score": 0.3524819016456604
+      "predicted": "Sneaking",
+      "score": 0.5826127529144287
     },
     {
       "text": "A handling charge has been included at checkout",
       "label": "Sneaking",
-      "predicted": "Not Dark Pattern",
-      "score": 0.6565799117088318
+      "predicted": "Sneaking",
+      "score": 0.9941341876983643
     },
     {
       "text": "Your subscription will continue unless cancelled",
       "label": "Sneaking",
-      "predicted": "Forced Action",
-      "score": 0.5958234071731567
+      "predicted": "Obstruction",
+      "score": 0.815485954284668
     },
     {
       "text": "An extra item was added to your basket",
       "label": "Sneaking",
-      "predicted": "Social Proof",
-      "score": 0.45673444867134094
+      "predicted": "Sneaking",
+      "score": 0.9837186336517334
     },
     {
       "text": "To cancel your subscription, please call us between 9 and 5",
       "label": "Obstruction",
-      "predicted": "Not Dark Pattern",
-      "score": 0.4497685134410858
+      "predicted": "Obstruction",
+      "score": 0.992150068283081
     },
     {
       "text": "Account deletion must be requested in writing",
       "label": "Obstruction",
-      "predicted": "Not Dark Pattern",
-      "score": 0.9464666843414307
+      "predicted": "Obstruction",
+      "score": 0.9930368661880493
     },
     {
       "text": "You can only cancel by contacting support",
       "label": "Obstruction",
-      "predicted": "Not Dark Pattern",
-      "score": 0.9546748995780945
+      "predicted": "Obstruction",
+      "score": 0.9926687479019165
     },
     {
       "text": "Unsubscribing requires confirming by mail",
       "label": "Obstruction",
-      "predicted": "Not Dark Pattern",
-      "score": 0.9731700420379639
+      "predicted": "Obstruction",
+      "score": 0.9705286026000977
     },
     {
       "text": "To close your account, visit a store in person",
       "label": "Obstruction",
-      "predicted": "Not Dark Pattern",
-      "score": 0.9657286405563354
+      "predicted": "Obstruction",
+      "score": 0.9919207096099854
     },
     {
       "text": "Refunds can only be processed over the phone",
       "label": "Obstruction",
-      "predicted": "Not Dark Pattern",
-      "score": 0.957467794418335
+      "predicted": "Obstruction",
+      "score": 0.9885140061378479
     },
     {
       "text": "Add to cart",
       "label": "Not Dark Pattern",
       "predicted": "Not Dark Pattern",
-      "score": 0.9850530028343201
+      "score": 0.8551346063613892
     },
     {
       "text": "Free shipping on orders over $50",
       "label": "Not Dark Pattern",
       "predicted": "Urgency",
-      "score": 0.34080323576927185
+      "score": 0.9912007451057434
     },
     {
       "text": "Product description and specifications",
       "label": "Not Dark Pattern",
       "predicted": "Not Dark Pattern",
-      "score": 0.9850871562957764
+      "score": 0.9917191863059998
     },
     {
       "text": "Customer reviews and ratings",
       "label": "Not Dark Pattern",
       "predicted": "Not Dark Pattern",
-      "score": 0.9841172099113464
+      "score": 0.984991729259491
     },
     {
       "text": "Our return policy lasts 30 days",
       "label": "Not Dark Pattern",
       "predicted": "Urgency",
-      "score": 0.3445735275745392
+      "score": 0.8962033987045288
     },
     {
       "text": "Contact us for help with your order",
       "label": "Not Dark Pattern",
-      "predicted": "Not Dark Pattern",
-      "score": 0.9500256776809692
+      "predicted": "Forced Action",
+      "score": 0.9755836725234985
     },
     {
       "text": "Your order has shipped",
       "label": "Not Dark Pattern",
-      "predicted": "Social Proof",
-      "score": 0.6679649353027344
+      "predicted": "Forced Action",
+      "score": 0.9788258671760559
     },
     {
       "text": "View the size guide",
       "label": "Not Dark Pattern",
       "predicted": "Not Dark Pattern",
-      "score": 0.9850843548774719
+      "score": 0.9932878613471985
     },
     {
       "text": "Search for products",
       "label": "Not Dark Pattern",
       "predicted": "Not Dark Pattern",
-      "score": 0.9841179847717285
+      "score": 0.992676317691803
     },
     {
       "text": "Add this item to your wishlist",
       "label": "Not Dark Pattern",
       "predicted": "Not Dark Pattern",
-      "score": 0.9750586152076721
+      "score": 0.5032356381416321
     },
     {
       "text": "Available in three colors",
       "label": "Not Dark Pattern",
       "predicted": "Not Dark Pattern",
-      "score": 0.9515495300292969
+      "score": 0.9818742871284485
     },
     {
       "text": "Estimated delivery in 3 to 5 business days",
       "label": "Not Dark Pattern",
       "predicted": "Not Dark Pattern",
-      "score": 0.4295397102832794
+      "score": 0.5468189716339111
     }
   ]
 }
