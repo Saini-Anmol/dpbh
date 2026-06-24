@@ -272,14 +272,41 @@
     return false;
   }
 
+  // -----  Risk scoring (1–10) + tier  -----
+  // Transparent, deterministic rubric (no LLM): each category has an intrinsic harm weight
+  // (financial/▸exit-blocking patterns hurt more than social proof), scaled by how confident
+  // the detector is. Heuristic hits use a fixed high confidence; ML hits use the model score.
+  const CATEGORY_RISK = {
+    Sneaking: 9, // hidden costs / auto-renewal — direct financial harm
+    "Forced Action": 8, // coerced account/data/consent
+    Obstruction: 8, // trapped — can't cancel/leave
+    Misdirection: 7, // confirmshaming / visual tricks
+    Urgency: 6, // manufactured time pressure
+    Scarcity: 5, // manufactured stock pressure
+    "Social Proof": 4, // softest nudge
+  };
+
+  function scorePattern(category, confidence) {
+    const base = CATEGORY_RISK[category] ?? 5;
+    let c = typeof confidence === "number" && !Number.isNaN(confidence) ? confidence : 0.9;
+    c = Math.max(0, Math.min(1, c));
+    // confidence scales the base into [0.6×, 1.0×] so a low-confidence hit can't look critical
+    let score = Math.round(base * (0.6 + 0.4 * c));
+    score = Math.max(1, Math.min(10, score));
+    const tier = score >= 9 ? "critical" : score >= 7 ? "high" : score >= 4 ? "medium" : "low";
+    return { score, tier };
+  }
+
   globalThis.DigiComDetection = {
     HEURISTICS,
     SEVERITY_MAP,
     ML_MIN_LEN,
     ML_MAX_LEN,
+    CATEGORY_RISK,
     classifyHeuristic,
     looksLikeUIText,
     hashText,
     isBenignUIText,
+    scorePattern,
   };
 })();

@@ -3,8 +3,11 @@
 // Stage 2: ML classification via DistilBERT for remaining text (async, ~50-150ms/batch)
 
 // Pure detection logic lives in detection.js (loaded first; testable in isolation).
-const { SEVERITY_MAP, classifyHeuristic, looksLikeUIText, hashText, isBenignUIText } =
+const { SEVERITY_MAP, classifyHeuristic, looksLikeUIText, hashText, isBenignUIText, scorePattern } =
   DigiComDetection;
+
+const TIER_LABEL = { critical: "Critical", high: "High", medium: "Medium", low: "Low" };
+const TIER_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 
 const ML_BATCH_SIZE = 24;
 const ML_BATCH_DELAY_MS = 50;
@@ -54,20 +57,21 @@ function collectTextNodes(root = document.body) {
   return nodes;
 }
 
-function applyHighlight(node, category, severity, source) {
+function applyHighlight(node, category, severity, source, confidence) {
   if (!isCategoryEnabled(category)) return;
   const parent = node.parentElement;
   if (!parent || parent.dataset.digicomHighlighted) return;
   if (!document.body.contains(node)) return;
 
+  const { score, tier } = scorePattern(category, confidence);
   const id = `digicom-${state.nextId++}`;
   const wrap = document.createElement("mark");
   wrap.id = id;
-  wrap.className = `digicom-highlight digicom-sev-${severity}`;
+  wrap.className = `digicom-highlight digicom-sev-${severity} digicom-tier-${tier}`;
   wrap.dataset.digicomCategory = category;
   wrap.dataset.digicomSource = source;
   wrap.dataset.digicomHighlighted = "true";
-  wrap.title = `DigiCom: ${category} (${severity}) · ${source}`;
+  wrap.title = `DigiCom: ${category} · risk ${score}/10 (${TIER_LABEL[tier]}) · ${source}`;
   wrap.textContent = node.nodeValue;
   parent.replaceChild(wrap, node);
 
@@ -75,7 +79,13 @@ function applyHighlight(node, category, severity, source) {
     state.byCategory[category] = [];
     state.cursor[category] = 0;
   }
-  state.byCategory[category].push({ id, severity, text: (node.nodeValue || "").trim() });
+  state.byCategory[category].push({
+    id,
+    severity,
+    score,
+    tier,
+    text: (node.nodeValue || "").trim(),
+  });
 }
 
 function getCounts() {
@@ -152,6 +162,25 @@ function ensurePanel() {
   return panel;
 }
 
+function worstTierOf(list) {
+  let t = "low";
+  for (const e of list || []) if (TIER_ORDER[e.tier] < TIER_ORDER[t]) t = e.tier;
+  return t;
+}
+function pageRisk() {
+  let tier = "low";
+  let max = 0;
+  for (const list of Object.values(state.byCategory))
+    for (const e of list) {
+      if (TIER_ORDER[e.tier] < TIER_ORDER[tier]) tier = e.tier;
+      if ((e.score || 0) > max) max = e.score;
+    }
+  return { tier, max };
+}
+function isAnalyzing() {
+  return running && (mlQueue.length > 0 || !!mlFlushTimer);
+}
+
 function renderPanel() {
   if (panelDismissed || !running) return removePanel();
   const counts = getCounts();
@@ -165,21 +194,23 @@ function renderPanel() {
   panel.querySelector("[data-digicom-total]").textContent = total;
   const sub = panel.querySelector("[data-digicom-sub]");
   const body = panel.querySelector("[data-digicom-body]");
+  const analyzing = isAnalyzing() ? `<span class="digicom-panel-analyzing">analyzing…</span>` : "";
 
   const detailList = panelView.mode === "detail" ? state.byCategory[panelView.category] : null;
 
   if (detailList && detailList.length) {
-    // ----- detail view: every occurrence of one category, click to jump -----
+    // ----- detail view: every occurrence of one category (score + click to jump) -----
     const cat = panelView.category;
-    const sev = SEVERITY_MAP[cat] || "low";
+    const worst = worstTierOf(detailList);
     sub.innerHTML = `<button class="digicom-panel-back" data-digicom-back>‹ all</button>
-      <span class="digicom-panel-dot digicom-dot-${sev}"></span>
-      <span class="digicom-panel-heading">${escapeHtml(cat)} · ${detailList.length}</span>`;
+      <span class="digicom-panel-badge digicom-tbadge-${worst}">${TIER_LABEL[worst]}</span>
+      <span class="digicom-panel-heading">${escapeHtml(cat)} · ${detailList.length}</span>${analyzing}`;
     body.innerHTML = detailList
       .map(
-        (e, i) =>
-          `<button class="digicom-panel-item" data-digicom-id="${e.id}">
-            <span class="digicom-panel-idx">${i + 1}</span>
+        (e) =>
+          `<button class="digicom-panel-item digicom-tl-${e.tier}" data-digicom-id="${e.id}"
+                   title="Risk ${e.score}/10 · ${TIER_LABEL[e.tier]}">
+            <span class="digicom-panel-score digicom-tbadge-${e.tier}">${e.score}</span>
             <span class="digicom-panel-text">${escapeHtml(truncate(e.text, 90))}</span>
           </button>`
       )
@@ -194,26 +225,29 @@ function renderPanel() {
     return;
   }
 
-  // ----- list view: categories with counts, click to expand -----
+  // ----- list view: categories ranked by risk tier, click to expand -----
   panelView = { mode: "list" };
-  sub.textContent = "dark patterns on this page · click to expand";
+  const risk = pageRisk();
+  sub.innerHTML =
+    `<span class="digicom-panel-risk digicom-ttext-${risk.tier}">Page risk: ${TIER_LABEL[risk.tier]} · ${risk.max}/10</span>` +
+    analyzing;
   const entries = Object.entries(counts)
     .filter(([, n]) => n > 0)
-    .sort((a, b) => {
-      const sa = SEV_ORDER[SEVERITY_MAP[a[0]] || "low"];
-      const sb = SEV_ORDER[SEVERITY_MAP[b[0]] || "low"];
-      return sa !== sb ? sa - sb : b[1] - a[1];
-    });
+    .map(([cat, n]) => [cat, n, worstTierOf(state.byCategory[cat])])
+    .sort((a, b) =>
+      TIER_ORDER[a[2]] !== TIER_ORDER[b[2]] ? TIER_ORDER[a[2]] - TIER_ORDER[b[2]] : b[1] - a[1]
+    );
   body.innerHTML = entries
-    .map(([cat, n]) => {
-      const sev = SEVERITY_MAP[cat] || "low";
-      return `<button class="digicom-panel-row digicom-pl-${sev}" data-digicom-cat="${cat}">
-          <span class="digicom-panel-dot digicom-dot-${sev}"></span>
+    .map(
+      ([cat, n, tier]) =>
+        `<button class="digicom-panel-row digicom-tl-${tier}" data-digicom-cat="${cat}">
+          <span class="digicom-panel-dot digicom-tdot-${tier}"></span>
           <span class="digicom-panel-cat">${cat}</span>
+          <span class="digicom-panel-badge digicom-tbadge-${tier}">${TIER_LABEL[tier]}</span>
           <span class="digicom-panel-count">${n}</span>
           <span class="digicom-panel-arrow">›</span>
-        </button>`;
-    })
+        </button>`
+    )
     .join("");
   body.querySelectorAll("[data-digicom-cat]").forEach((row) => {
     row.addEventListener("click", () => {
@@ -238,12 +272,40 @@ function setActive(el) {
   setTimeout(() => el.classList.remove("digicom-focus"), 2000);
 }
 
+// Drop highlights whose element vanished (dynamic pages re-render and remove our <mark>s),
+// so panel counts/lists stay accurate and clicks don't silently no-op.
+function pruneDeadHighlights() {
+  let changed = false;
+  for (const cat of Object.keys(state.byCategory)) {
+    const kept = state.byCategory[cat].filter((e) => {
+      const el = document.getElementById(e.id);
+      return el && el.isConnected;
+    });
+    if (kept.length !== state.byCategory[cat].length) changed = true;
+    if (kept.length) state.byCategory[cat] = kept;
+    else {
+      delete state.byCategory[cat];
+      delete state.cursor[cat];
+    }
+  }
+  return changed;
+}
+
 // Jump to one specific highlight by id (used by the per-category list in the panel).
 function jumpToId(id) {
   const el = document.getElementById(id);
-  if (!el || !el.isConnected) return { ok: false };
-  setActive(el);
-  return { ok: true };
+  if (el && el.isConnected) {
+    setActive(el);
+    return { ok: true };
+  }
+  // Stale entry: the element is gone. Prune, refresh the panel, and fall back to another
+  // live occurrence of the same category so the click still does something useful.
+  const cat = (Object.entries(state.byCategory).find(([, list]) => list.some((e) => e.id === id)) ||
+    [])[0];
+  pruneDeadHighlights();
+  notifyCounts();
+  if (cat && state.byCategory[cat]?.length) return jumpToNext(cat);
+  return { ok: false };
 }
 
 // Cycle to the next live occurrence of a category (used by the popup).
@@ -274,7 +336,8 @@ function runHeuristicPass(root = document.body) {
     if (isBenignUIText(node.nodeValue)) continue;
     const heuristic = classifyHeuristic(node.nodeValue);
     if (heuristic) {
-      applyHighlight(node, heuristic.category, heuristic.severity, "heuristic");
+      // Heuristic matches are explicit patterns → treat as high-confidence (0.9).
+      applyHighlight(node, heuristic.category, heuristic.severity, "heuristic", 0.9);
       continue;
     }
     if (!looksLikeUIText(node.nodeValue)) continue;
@@ -322,7 +385,7 @@ async function flushMLQueue() {
         if (r.score < settings.threshold) return;
         const node = batchNodes[i];
         const severity = SEVERITY_MAP[r.label] || "low";
-        applyHighlight(node, r.label, severity, "ml");
+        applyHighlight(node, r.label, severity, "ml", r.score);
         newHighlights++;
       });
       if (newHighlights) notifyCounts();

@@ -9,6 +9,22 @@ the version is [`extension/manifest.json`](extension/manifest.json).
 
 ### Added
 
+- **Risk scoring (1–10) + tiers (Critical / High / Medium / Low)** for every detected
+  pattern — a transparent, on-device rubric (`scorePattern` in `detection.js`: category harm
+  weight × detector confidence; no LLM/agent). Shown in the panel: per-occurrence score,
+  per-category tier, and an overall "page risk".
+- **Loading/analyzing state** instead of a premature "ML: failed": the offscreen model load
+  now retries transient failures (up to 3×) before reporting an error, and the panel shows an
+  "analyzing…" indicator while classification is in progress.
+
+### Fixed
+
+- **Click-to-jump occasionally not navigating**: stale highlights (removed by a page
+  re-render) are now pruned, the panel refreshes, and the click falls back to the next live
+  occurrence in that category.
+
+### Added (earlier)
+
 - **Per-category drill-down in the on-page panel**: click a category to see a list of its
   actual occurrences (with a heading); click an occurrence to jump straight to it.
 - **Persistent "active" highlight**: the jumped-to pattern keeps a sparkling-yellow border

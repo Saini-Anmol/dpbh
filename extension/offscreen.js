@@ -19,31 +19,38 @@ const MODEL_ID = "dpbh-distilbert";
 let classifier = null;
 let loading = null;
 let loadError = null;
+let loadAttempts = 0;
+const MAX_LOAD_ATTEMPTS = 3;
 
 async function ensureClassifier() {
   if (classifier) return classifier;
-  if (loadError) throw loadError;
-  if (!loading) {
-    // v2 (Transformers.js) selects the quantized ONNX (onnx/model_quantized.onnx) via
-    // `quantized: true` — the equivalent of v3's `dtype: "q8"`.
-    loading = pipeline("text-classification", MODEL_ID, { quantized: true })
-      .then((c) => {
-        classifier = c;
-        loading = null;
-        broadcastStatus("ready");
-        console.info("[DigiCom] model loaded");
-        return c;
-      })
-      .catch((e) => {
-        loadError = e;
-        loading = null;
-        broadcastStatus("error", String(e));
-        // Surface the real cause (the bundle's internal stack alone isn't actionable).
-        console.error("[DigiCom] model failed to load:", e);
-        throw e;
-      });
-    broadcastStatus("loading");
-  }
+  if (loading) return loading;
+  // Don't latch a transient failure forever — the 194 MB model can fail a load under
+  // memory pressure / mid-fetch; retry a few times before giving up (status stays "loading"
+  // in the meantime, not "error").
+  if (loadError && loadAttempts >= MAX_LOAD_ATTEMPTS) throw loadError;
+
+  loadError = null;
+  loadAttempts++;
+  // v2 (Transformers.js) selects the quantized ONNX (onnx/model_quantized.onnx) via
+  // `quantized: true` — the equivalent of v3's `dtype: "q8"`.
+  loading = pipeline("text-classification", MODEL_ID, { quantized: true })
+    .then((c) => {
+      classifier = c;
+      loading = null;
+      broadcastStatus("ready");
+      console.info("[DigiCom] model loaded");
+      return c;
+    })
+    .catch((e) => {
+      loadError = e;
+      loading = null;
+      // Only surface "error" to the UI once we've exhausted retries; otherwise keep "loading".
+      broadcastStatus(loadAttempts >= MAX_LOAD_ATTEMPTS ? "error" : "loading", String(e));
+      console.error(`[DigiCom] model load attempt ${loadAttempts} failed:`, e);
+      throw e;
+    });
+  broadcastStatus("loading");
   return loading;
 }
 

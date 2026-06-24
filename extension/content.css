@@ -336,3 +336,110 @@
   text-align: left !important;
   word-break: break-word !important;
 }
+
+/* -----  Risk tiers (score 1-10 → Critical/High/Medium/Low) in the panel  ----- */
+.digicom-tdot-critical {
+  background: #dc2626 !important;
+}
+.digicom-tdot-high {
+  background: #f97316 !important;
+}
+.digicom-tdot-medium {
+  background: #f59e0b !important;
+}
+.digicom-tdot-low {
+  background: #3b82f6 !important;
+}
+
+.digicom-tl-critical {
+  border-left-color: #dc2626 !important;
+}
+.digicom-tl-high {
+  border-left-color: #f97316 !important;
+}
+.digicom-tl-medium {
+  border-left-color: #f59e0b !important;
+}
+.digicom-tl-low {
+  border-left-color: #3b82f6 !important;
+}
+
+.digicom-tbadge-critical {
+  background: #dc2626 !important;
+  color: #fff !important;
+}
+.digicom-tbadge-high {
+  background: #f97316 !important;
+  color: #fff !important;
+}
+.digicom-tbadge-medium {
+  background: #f59e0b !important;
+  color: #1f2937 !important;
+}
+.digicom-tbadge-low {
+  background: #3b82f6 !important;
+  color: #fff !important;
+}
+
+.digicom-ttext-critical {
+  color: #f87171 !important;
+}
+.digicom-ttext-high {
+  color: #fb923c !important;
+}
+.digicom-ttext-medium {
+  color: #fbbf24 !important;
+}
+.digicom-ttext-low {
+  color: #60a5fa !important;
+}
+
+.digicom-panel-risk {
+  font-weight: 700 !important;
+}
+.digicom-panel-analyzing {
+  margin-left: auto !important;
+  color: #94a3b8 !important;
+  font-style: italic !important;
+  text-transform: none !important;
+  animation: digicom-analyze 1s ease-in-out infinite !important;
+}
+@keyframes digicom-analyze {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.digicom-panel-cat {
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.digicom-panel-badge {
+  flex: 0 0 auto !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+  padding: 1px 6px !important;
+  border-radius: 8px !important;
+}
+.digicom-panel-item {
+  border-left: 3px solid transparent !important;
+}
+.digicom-panel-score {
+  flex: 0 0 auto !important;
+  min-width: 22px !important;
+  height: 20px !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}

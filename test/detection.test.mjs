@@ -119,6 +119,36 @@ describe("isBenignUIText (false-positive guard)", () => {
   });
 });
 
+describe("scorePattern (risk 1-10 + tier)", () => {
+  it("returns a 1-10 score and a valid tier", () => {
+    const r = DigiComDetection.scorePattern("Sneaking", 0.95);
+    assert.ok(r.score >= 1 && r.score <= 10);
+    assert.ok(["critical", "high", "medium", "low"].includes(r.tier));
+  });
+
+  it("ranks high-harm categories above soft nudges (at equal confidence)", () => {
+    const sneaking = DigiComDetection.scorePattern("Sneaking", 1).score;
+    const social = DigiComDetection.scorePattern("Social Proof", 1).score;
+    assert.ok(sneaking > social, `Sneaking(${sneaking}) should outscore Social Proof(${social})`);
+  });
+
+  it("scales with confidence", () => {
+    const hi = DigiComDetection.scorePattern("Forced Action", 1).score;
+    const lo = DigiComDetection.scorePattern("Forced Action", 0).score;
+    assert.ok(hi >= lo);
+  });
+
+  it("maps scores to the right tier bands", () => {
+    assert.equal(DigiComDetection.scorePattern("Sneaking", 1).tier, "critical"); // 9
+    assert.equal(DigiComDetection.scorePattern("Social Proof", 0).tier, "low"); // ~2-3
+  });
+
+  it("defaults confidence sensibly when missing", () => {
+    const r = DigiComDetection.scorePattern("Urgency");
+    assert.ok(r.score >= 1 && r.score <= 10);
+  });
+});
+
 describe("hashText", () => {
   it("is deterministic and trims", () => {
     assert.equal(DigiComDetection.hashText("Buy now"), DigiComDetection.hashText("  Buy now  "));
