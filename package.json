@@ -1,6 +1,6 @@
 {
   "name": "digicom-dark-pattern-buster",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Privacy-first Chrome (Manifest V3) extension that detects and highlights dark patterns on shopping sites in real time, using an on-device DistilBERT model.",
   "private": true,
   "type": "module",

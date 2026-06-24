@@ -7,46 +7,36 @@ the version is [`extension/manifest.json`](extension/manifest.json).
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-06-21
+
 ### Added
 
 - **Risk scoring (1–10) + tiers (Critical / High / Medium / Low)** for every detected
   pattern — a transparent, on-device rubric (`scorePattern` in `detection.js`: category harm
-  weight × detector confidence; no LLM/agent). Shown in the panel: per-occurrence score,
-  per-category tier, and an overall "page risk".
-- **Loading/analyzing state** instead of a premature "ML: failed": the offscreen model load
-  now retries transient failures (up to 3×) before reporting an error, and the panel shows an
-  "analyzing…" indicator while classification is in progress.
-
-### Fixed
-
-- **Click-to-jump occasionally not navigating**: stale highlights (removed by a page
-  re-render) are now pruned, the panel refreshes, and the click falls back to the next live
-  occurrence in that category.
-
-### Added (earlier)
-
-- **Per-category drill-down in the on-page panel**: click a category to see a list of its
-  actual occurrences (with a heading); click an occurrence to jump straight to it.
-- **Persistent "active" highlight**: the jumped-to pattern keeps a sparkling-yellow border
-  until you pick another, so it stays clearly visible.
-- **False-positive guard** (`isBenignUIText` in `detection.js`): common benign e-commerce
-  labels — "Contact us", "Cancellation & Returns", "Track Order", "Privacy Policy", etc. —
-  are no longer flagged as dark patterns (covered by tests).
-
-### Fixed
-
-- **Page freeze / hang on dynamic sites.** The `MutationObserver` ran a synchronous full
-  scan on every mutation; on heavy sites (marketplaces) this saturated the main thread.
-  Mutations are now **coalesced and scanned once per debounce window**, the ML queue is
-  **capped per page**, and the on-page panel render is **throttled**.
-- **Click-to-jump not navigating.** `jumpToNext` now skips/prunes stale highlights and
-  reliably scrolls to the next live occurrence; the focus pulse is more visible.
+  weight × detector confidence; no LLM/agent).
+- **On-page summary panel** with per-category **drill-down** (click a category → list its
+  occurrences with a heading), click-to-jump, an overall **page-risk** readout, and a
+  persistent **sparkling-yellow active highlight** on the selected pattern.
+- **Loading/analyzing state**: the offscreen model load retries transient failures (up to 3×)
+  before reporting an error; the panel shows an "analyzing…" indicator during classification.
+- **False-positive guard** (`isBenignUIText`): common benign e-commerce labels ("Contact us",
+  "Cancellation & Returns", "Privacy Policy", …) are no longer flagged (covered by tests).
+- **Free distribution** via GitHub Releases — self-contained `digicom-extension.zip` (model
+  bundled), load-unpacked install; see [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ### Changed
 
-- **Lighter highlight styling**: subtle tint + colored underline by default, with the
-  category badge shown **on hover** instead of permanently (cleaner pages, less repaint).
-- On-page summary panel: smooth entrance animation, custom scrollbar, snappier rows.
+- **Lighter highlight styling**: subtle tint + colored underline by default, category badge
+  on hover (cleaner pages, less repaint); smoother panel (entrance animation, scrollbar).
+- **Performance**: debounced `MutationObserver`, capped ML queue, throttled panel render —
+  fixes page freeze/jank on dynamic marketplaces.
+
+### Fixed
+
+- Click-to-jump occasionally not navigating (prune stale highlights + fall back to next live
+  occurrence).
+- The big model `.onnx` files are git-ignored (GitHub's 100 MB limit); distributed via the
+  release zip instead.
 
 ## [0.3.0] — 2026-06-21
 
@@ -139,7 +129,8 @@ the version is [`extension/manifest.json`](extension/manifest.json).
   DistilBERT classification (Stage 2) across 8 categories, with in-page highlighting, a
   popup breakdown, and click-to-jump.
 
-[Unreleased]: https://github.com/your-org/digicom-dark-pattern-buster/compare/v0.3.0...HEAD
-[0.3.0]: https://github.com/your-org/digicom-dark-pattern-buster/releases/tag/v0.3.0
-[0.2.0]: https://github.com/your-org/digicom-dark-pattern-buster/releases/tag/v0.2.0
-[0.1.0]: https://github.com/your-org/digicom-dark-pattern-buster/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Saini-Anmol/dpbh/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Saini-Anmol/dpbh/releases/tag/v0.4.0
+[0.3.0]: https://github.com/Saini-Anmol/dpbh/releases/tag/v0.3.0
+[0.2.0]: https://github.com/Saini-Anmol/dpbh/releases/tag/v0.2.0
+[0.1.0]: https://github.com/Saini-Anmol/dpbh/releases/tag/v0.1.0

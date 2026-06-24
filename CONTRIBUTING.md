@@ -6,21 +6,22 @@ how to propose changes.
 ## Prerequisites
 
 - A Chromium‑based browser (Chrome, Edge, Brave).
-- [Node.js](https://nodejs.org/) 18+ (for the lint/format/package tooling only — the
+- [Node.js](https://nodejs.org/) 18+ (for the lint/format/test/package tooling only — the
   extension itself has no build step).
-- [Git LFS](https://git-lfs.com/) — the model weights and WASM runtime are stored with LFS.
 
 ## Getting started
 
 ```bash
-git lfs install
-git clone https://github.com/your-org/digicom-dark-pattern-buster.git
-cd digicom-dark-pattern-buster
+git clone https://github.com/Saini-Anmol/dpbh.git
+cd dpbh
 npm install
 ```
 
-If you cloned **before** installing Git LFS, run `git lfs pull` to download the real
-`*.onnx` / `*.wasm` files (otherwise they're tiny pointer text files and the ML stage fails).
+The model weights (~194 MB) are **not** committed (too large for plain Git). To run the ML
+stage locally, copy the `models/` folder from a release `digicom-extension.zip` into
+`extension/models/`, or export your own with
+[`notebooks/finetune_distilbert.ipynb`](notebooks/finetune_distilbert.ipynb) then
+`npm run sync-model`. Stage‑1 heuristics work without the weights.
 
 ### Load the extension
 
@@ -102,12 +103,14 @@ every push/PR.
 
 If you re‑train or re‑export the classifier:
 
-1. Update **both** `extension/models/dpbh-distilbert/onnx/model_quantized.onnx` and the
-   root `onnx_quantized/` copy (or script the copy).
-2. Update `label_map.json` and `config.json` (`id2label` / `label2id`) if classes change.
-3. Update `SEVERITY_MAP` in `content.js` **and** `popup.js`.
-4. Confirm the `dtype` in `offscreen.js` matches the quantization.
-5. Re‑add large files with `git lfs track` if not already covered by `.gitattributes`.
+1. Put the new export in `onnx_quantized/`, then run `npm run sync-model` to copy it into
+   `extension/models/dpbh-distilbert/` (the big `.onnx` files are git‑ignored, so they stay
+   local and ship via the release zip — see [`docs/DEPLOY.md`](docs/DEPLOY.md)).
+2. Update `label_map.json` / `config.json` (`id2label` / `label2id`) if classes change.
+3. Update `SEVERITY_MAP` / `CATEGORY_RISK` in `detection.js` if categories change.
+4. Export at **opset 14** with `{ quantized: true }` output so the extension's ONNX Runtime
+   1.14 can load it.
+5. Re‑run `npm run eval` and refresh `docs/MODEL_CARD.md`.
 
 ## Submitting changes
 

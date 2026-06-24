@@ -4,7 +4,7 @@
 
 **A privacy‑first Chrome extension that detects and highlights manipulative "dark patterns" on shopping websites — in real time, 100% on your device.**
 
-[![CI](https://github.com/your-org/digicom-dark-pattern-buster/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/digicom-dark-pattern-buster/actions/workflows/ci.yml)
+[![CI](https://github.com/Saini-Anmol/dpbh/actions/workflows/ci.yml/badge.svg)](https://github.com/Saini-Anmol/dpbh/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Manifest V3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)
 [![On‑device ML](https://img.shields.io/badge/ML-on--device%20DistilBERT-ff6f00)](https://github.com/huggingface/transformers.js)
@@ -59,23 +59,37 @@ _Guidelines for Prevention and Regulation of Dark Patterns (2023)_.
 >
 > `docs/screenshot-popup.png` · `docs/screenshot-highlight.png`
 
-## Install (from source)
+## Install — free, no Chrome Web Store
 
-This extension is not yet on the Chrome Web Store. To run it locally:
+DigiCom installs in ~1 minute and is **100% free** (no store listing, no account, no payment).
 
-1. **Clone the repo** (the model is stored with [Git LFS](https://git-lfs.com/)):
-   ```bash
-   git lfs install
-   git clone https://github.com/your-org/digicom-dark-pattern-buster.git
-   cd digicom-dark-pattern-buster
-   ```
-2. Open `chrome://extensions` in Chrome (or any Chromium browser — Edge, Brave).
-3. Toggle **Developer mode** (top‑right).
-4. Click **Load unpacked** and select the **`extension/`** folder.
-5. Pin the DigiCom icon and browse a shopping site — detections appear as you scroll.
+### For users (recommended)
 
-> ⚠️ Without Git LFS the `*.onnx` model file will be a small text pointer and the ML stage
-> won't load. Run `git lfs install` **before** cloning, or `git lfs pull` afterward.
+1. Download the latest **`digicom-extension.zip`** from the
+   [**Releases**](https://github.com/Saini-Anmol/dpbh/releases) page. It's self‑contained —
+   the on‑device model is bundled inside.
+2. **Unzip** it into a folder you'll keep (Chrome loads the extension from this folder, so
+   don't delete or move it afterward).
+3. Open `chrome://extensions` in Chrome, Edge, or Brave.
+4. Toggle **Developer mode** (top‑right).
+5. Click **Load unpacked** and select the unzipped folder.
+6. Pin the 🛡 DigiCom icon and browse a shopping site — patterns are highlighted live, and the
+   on‑page panel shows a per‑category **risk breakdown (1–10, Critical→Low)**.
+
+### For developers (from source)
+
+```bash
+git clone https://github.com/Saini-Anmol/dpbh.git
+cd dpbh
+npm install        # dev tooling (lint / test / format)
+```
+
+The model weights (~194 MB) are **not** in the repo (too large for plain Git). Get them from
+a release: download `digicom-extension.zip`, and copy its `models/` folder into
+`extension/models/`. Then `chrome://extensions` → **Developer mode** → **Load unpacked** →
+select the **`extension/`** folder.
+
+> Without the weights, Stage‑1 heuristics still highlight patterns; Stage‑2 ML needs the model.
 
 ## How it works
 
@@ -149,10 +163,12 @@ tab closes.
 ## Roadmap
 
 - [x] User‑configurable sensitivity, category toggles, and per‑site disable
-- [ ] Publish to the Chrome Web Store
-- [ ] Add extension icons and store assets
+- [x] Risk scoring (1–10) + Critical/High/Medium/Low tiers, on‑page risk panel
+- [x] Model card + reproducible metrics; retrained classifier (91.5% acc)
+- [x] Free distribution via GitHub Releases (load‑unpacked)
+- [ ] Slim the quantized model (~194 MB → ~67 MB)
 - [ ] Firefox (WebExtensions) port
-- [ ] Expand and benchmark the training dataset; publish model card + metrics
+- [ ] Optional: Chrome Web Store / Edge Add‑ons listing
 
 ## Contributing
 
